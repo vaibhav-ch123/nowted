@@ -6,6 +6,7 @@ import folderOpenLogo from "../assets/open-folder-logo.svg";
 import favoritesLogo from "../assets/archived-logo.svg";
 import trashLogo from "../assets/bin-logo.svg";
 import archivedLogo from "../assets/archived-logo.svg";
+import addFolderLogo from "../assets/add-folder-logo.svg";
 
 export function SideBar() {
   return (
@@ -38,7 +39,10 @@ export function SideBar() {
       </section>
 
       <section>
-        <h2 className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">Folders</h2>
+        <div className="px-[6%] py-2 flex justify-between">
+          <h2 className="text-[rgba(255,255,255,0.6)] text-[14px]">Folders</h2>
+          <img src={addFolderLogo} alt="add-folder-logo" />
+        </div>
         <ul>
             <li className="bg-[rgba(255,255,255,0.03)] px-[6%] py-2 flex items-center gap-4">
                 <img src={folderOpenLogo} alt="folder-open-logo" />
@@ -64,7 +68,7 @@ export function SideBar() {
       </section>
 
       <section>
-        <h2 className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">Recents</h2>
+        <h2 className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">More</h2>
         <ul>
             <li className="px-[6%] py-2 flex items-center gap-4">
                 <img src={favoritesLogo} alt="favorites-logo" />
