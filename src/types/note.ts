@@ -16,3 +16,8 @@ export type Note = {
 export type RecentNotes = {
   recentNotes: Note[];
 }
+
+export type Notes = {
+  notes: Note[],
+  total: number
+}

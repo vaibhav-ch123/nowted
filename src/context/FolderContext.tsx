@@ -1,28 +1,38 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type { Folder } from "../types/folder";
 
 type folderContextType = {
-    folderId: string,
-    setFolderId: React.Dispatch<React.SetStateAction<string>>
-}
+  folderData: Folder;
+  setFolderData: React.Dispatch<React.SetStateAction<Folder>>;
+};
 
 const FolderContext = createContext<folderContextType | undefined>(undefined);
 
-export function FolderProvider({children}: {children: ReactNode}) {
-    const [folderId, setFolderId] = useState<string>("");
-    const value = useMemo(() => ({folderId, setFolderId}), [folderId]);
+export function FolderProvider({ children }: { children: ReactNode }) {
+  const [folderData, setFolderData] = useState<Folder>({
+    id: "all-notes",
+    name: "All Notes",
+    createdAt: "",
+    updatedAt: "",
+    deletedAt: "",
+  });
+  const value = useMemo(() => ({ folderData, setFolderData }), [folderData]);
 
-    return (
-        <FolderContext value={value}>
-          {children}
-        </FolderContext>
-    );
+  return <FolderContext value={value}>{children}</FolderContext>;
 }
 
-export function useFolderId() {
+export function useFolderContextData() {
+  const context = useContext(FolderContext);
 
-    const context = useContext(FolderContext);
+  if (!context) {
+    throw new Error("useFolderId must be used inside folderProvider");
+  }
 
-    if(!context)        throw new Error("useFolderId must be used inside folderProvider");
-
-    return context;
+  return context;
 }

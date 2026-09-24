@@ -5,10 +5,10 @@ import { useState, useEffect } from "react";
 import { getFolders } from "../api/folderApi";
 import type { Folder } from "../types/folder";
 import { NavLink } from "react-router";
-import { useFolderId } from "../context/FolderContext";
+import { useFolderContextData } from "../context/FolderContext";
 
 export function FolderLists() {
-  const { setFolderId } = useFolderId();
+  const { setFolderData } = useFolderContextData();
   const [folders, setFolders] = useState<Folder[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string>("");
@@ -46,7 +46,7 @@ export function FolderLists() {
                 `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
               }
               onClick={() => {
-                setFolderId(folder.id);
+                setFolderData(folder);
               }}
             >
               {({ isActive }) => (
