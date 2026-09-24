@@ -1,4 +1,14 @@
+import { useEffect } from "react";
+import { useFolderId } from "../context/FolderContext"
+
 export function NoteList() {
+    
+    const {folderId} = useFolderId();
+
+    useEffect(() => {
+      
+    }, [folderId]);
+
     return (
       <section className="bg-[#1C1C1C] text-[#FFFFFF] flex flex-col flex-25 gap-4 p-4 overflow-auto">
         <h1 className="py-2 text-[22px] text-[rgba(255,255,255,1)]">Personal</h1>

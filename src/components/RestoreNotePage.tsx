@@ -2,7 +2,7 @@ import restoreFileImg from "../assets/restore-file.svg";
 
 export function RestoreNotePage() {
   return (
-    <section className="bg-[#181818] flex flex-col justify-center items-center gap-2 flex-55 py-6 px-[15%] text-center overflow-auto">
+    <section className="bg-[#181818] flex flex-col justify-center items-center gap-2 flex-55 py-10 px-8 text-center overflow-auto">
       <img src={restoreFileImg} alt="file-logo" className="h-20 w-20" />
       <h1 className="text-[#FFFFFF] text-[28px]">
         Restore "Reflection on the Month of June"
