@@ -4,14 +4,15 @@ import addFolderLogo from "../assets/add-folder-logo.svg";
 import { useState, useEffect } from "react";
 import { getFolders } from "../api/folderApi";
 import type { Folder } from "../types/folder";
-import { NavLink } from "react-router";
-import { useFolderContextData } from "../context/FolderContext";
+import { NavLink, useLocation, useNavigate } from "react-router";
 
 export function FolderLists() {
-  const { setFolderData } = useFolderContextData();
+
   const [folders, setFolders] = useState<Folder[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string>("");
+  const location = useLocation();
+  const navigator = useNavigate();
 
   useEffect(() => {
     async function loadFolders() {
@@ -32,7 +33,7 @@ export function FolderLists() {
   if (err) return <p>{err}</p>;
 
   return (
-    <section>
+    <section className="h-[30%] overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
       <div className="px-[6%] py-2 flex justify-between">
         <h2 className="text-[rgba(255,255,255,0.6)] text-[14px]">Folders</h2>
         <img src={addFolderLogo} alt="add-folder-logo" />
@@ -41,12 +42,16 @@ export function FolderLists() {
         {folders?.map((folder) => (
           <li key={folder.id}>
             <NavLink
-              to={`/dashboard/folder/${folder.id}`}
+              to={`/dashboard/${folder.name}/${folder.id}`}
               className={({ isActive }) =>
                 `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
               }
-              onClick={() => {
-                setFolderData(folder);
+              onClick={(e) => {
+                const pathFolderId = location.pathname.split("/")[3];
+                if(pathFolderId === folder.id){
+                  e.preventDefault()
+                  navigator(`/dashboard/All Notes/all-notes`);
+                }
               }}
             >
               {({ isActive }) => (

@@ -4,41 +4,117 @@ import folderLogo from "../assets/add-folder-logo.svg";
 import archiveLogo from "../assets/archived-logo.svg";
 import favLogo from "../assets/fav-logo.svg";
 import binLogo from "../assets/bin-logo.svg";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
+import { getNote } from "../api/notesApi";
+import type { CreateNote } from "../types/note";
 
 export function NoteDetail() {
-  
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  
+  const [note, setNote] = useState<CreateNote>({
+    folderId: "",
+    title: "",
+    content: "",
+    isFavorite: false,
+    isArchived: false,
+  });
+  const { noteId, folderId } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadNote() {
+      if (!noteId) return;
+
+      try {
+        const noteData = await getNote(noteId);
+
+        if (cancelled)   return;
+        setNote({
+          folderId: folderId ? folderId : "",
+          title: noteData.title,
+          content: noteData.content ? noteData.content : "",
+          isFavorite: noteData.isFavorite,
+          isArchived: noteData.isArchived
+        })
+      } catch (e) {
+        if (!cancelled) {
+          setErr("failed to load note!");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadNote();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [noteId]);
+
   function handleMenuToggle(): void {
     setIsMenuOpen(!isMenuOpen);
   }
 
+  if (loading)
+    return (
+      <p className="bg-[#181818] text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10">
+        Loading..
+      </p>
+    );
+  if (err)
+    return (
+      <p className="bg-[#181818] text-red-400 flex flex-col flex-55 gap-6 px-8 py-10">
+        {err}
+      </p>
+    );
+
   return (
-    <article className="bg-[#181818] text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10 overflow-auto">
+    <article className="bg-[#181818] text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10 overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
+      {loading}
       <section className="flex justify-between items-center">
-        <h1 className="text-[32px] text-[rgba(255,255,255,1)]">Reflection on the month of June</h1>
-        <div className="relative">
-          <img src={optionLogo} alt="option-logo" onClick={handleMenuToggle} className="" />
-          { isMenuOpen && (<div className="absolute top-12 right-0 bg-[#333333] w-50 rounded-md">
-            <ul className="flex flex-col">
+        {/* <h1 className="text-[32px] text-[rgba(255,255,255,1)]">Reflection on the month of June</h1> */}
+        <input
+          type="text"
+          className="text-[32px] text-[rgba(255,255,255,1)] w-[90%]"
+          onChange={(e) => {
+            setNote((prev) => ({...prev, title: e.target.value}))
+          }}
+          value={note.title}
+        />
+        <div className="relative cursor-pointer">
+          <img
+            src={optionLogo}
+            alt="option-logo"
+            onClick={handleMenuToggle}
+            className=""
+          />
+          {isMenuOpen && (
+            <div className="absolute top-12 right-0 bg-[#333333] w-50 rounded-md">
+              <ul className="flex flex-col">
                 <li className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]">
-                    <img src={favLogo} alt="favorite-logo" />
-                    <a href="#">Add to favorites</a>
+                  <img src={favLogo} alt="favorite-logo" />
+                  <a href="#">Add to favorites</a>
                 </li>
                 <li className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]">
-                    <img src={archiveLogo} alt="archived-logo" />
-                    <a href="#">Archived</a>
+                  <img src={archiveLogo} alt="archived-logo" />
+                  <a href="#">Archived</a>
                 </li>
                 <li className="px-4 py-2">
-                    <hr className="text-[rgba(255,255,255,0.05)]" />
+                  <hr className="text-[rgba(255,255,255,0.05)]" />
                 </li>
                 <li className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]">
-                    <img src={binLogo} alt="bin-logo" />
-                    <a href="#">Delete</a>
+                  <img src={binLogo} alt="bin-logo" />
+                  <a href="#">Delete</a>
                 </li>
-            </ul>
-          </div>) }
+              </ul>
+            </div>
+          )}
         </div>
       </section>
 
@@ -60,7 +136,15 @@ export function NoteDetail() {
         </div>
       </section>
 
-      <section >
+      <textarea
+        value={note.content}
+        onChange={(e) => {
+          setNote((prev) => ({...prev, content: e.target.value}));
+        }}
+        rows={30}
+        className="overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]"
+      />
+      {/* <section>
         <p>It's hard to believe that June is already over!</p>
 
         <p>
@@ -68,7 +152,7 @@ export function NoteDetail() {
         </p>
 
         <p>I also had a great time on my vacation to Hawaii...</p>
-      </section>
+      </section> */}
     </article>
   );
 }

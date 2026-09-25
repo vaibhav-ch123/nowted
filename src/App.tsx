@@ -5,12 +5,12 @@ import { NoteList } from "./components/NoteList";
 // import { NoteDetail } from "./components/NoteDetail";
 import { Outlet } from "react-router";
 import { FileProvider } from "./context/FileContext";
-import { FolderProvider } from "./context/FolderContext";
+import { RefreshFolderProvider } from "./context/FolderContext";
 
 function App() {
   return (
     <FileProvider>
-      <FolderProvider>
+      <RefreshFolderProvider>
         <main className="flex h-screen">
           <SideBar />
           <NoteList />
@@ -19,7 +19,7 @@ function App() {
           {/* <SelectNotePage /> */}
           {/* <RestoreNotePage /> */}
         </main>
-      </FolderProvider>
+      </RefreshFolderProvider>
     </FileProvider>
   );
 }

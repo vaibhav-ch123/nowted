@@ -5,33 +5,26 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Folder } from "../types/folder";
 
-type folderContextType = {
-  folderData: Folder;
-  setFolderData: React.Dispatch<React.SetStateAction<Folder>>;
+type refreshFolderContextType = {
+  refreshFolder: number;
+  setRefreshFolder: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const FolderContext = createContext<folderContextType | undefined>(undefined);
+const RefreshFolderContext = createContext<refreshFolderContextType | undefined>(undefined);
 
-export function FolderProvider({ children }: { children: ReactNode }) {
-  const [folderData, setFolderData] = useState<Folder>({
-    id: "all-notes",
-    name: "All Notes",
-    createdAt: "",
-    updatedAt: "",
-    deletedAt: "",
-  });
-  const value = useMemo(() => ({ folderData, setFolderData }), [folderData]);
+export function RefreshFolderProvider({ children }: { children: ReactNode }) {
+  const [refreshFolder, setRefreshFolder] = useState<number>(0);
+  const value = useMemo(() => ({ refreshFolder, setRefreshFolder }), [refreshFolder]);
 
-  return <FolderContext value={value}>{children}</FolderContext>;
+  return <RefreshFolderContext value={value}>{children}</RefreshFolderContext>;
 }
 
-export function useFolderContextData() {
-  const context = useContext(FolderContext);
+export function useRefreshFolderContext() {
+  const context = useContext(RefreshFolderContext);
 
   if (!context) {
-    throw new Error("useFolderId must be used inside folderProvider");
+    throw new Error("useRefreshFolderContext must be used inside RefreshFolderProvider");
   }
 
   return context;

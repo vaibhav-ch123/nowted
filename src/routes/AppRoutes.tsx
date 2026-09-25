@@ -8,7 +8,7 @@ export function AppRoutes() {
 
     return (
         <Routes>
-            <Route path="dashboard/folder/:folderId" element={<App />} >
+            <Route path="dashboard/:folderName/:folderId" element={<App />} >
               <Route index element={<SelectNotePage />} />
               <Route path="note/:noteId" element={<NoteDetail />} />
               <Route path="note/:noteId/trash" element={<RestoreNotePage />} />

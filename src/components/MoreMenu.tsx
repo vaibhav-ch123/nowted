@@ -1,42 +1,11 @@
 import favoritesLogo from "../assets/archived-logo.svg";
 import trashLogo from "../assets/bin-logo.svg";
 import archivedLogo from "../assets/archived-logo.svg";
-import { NavLink } from "react-router";
-import { useFolderContextData } from "../context/FolderContext";
-import { useMemo } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router";
 
 export function MoreMenu() {
-  const { setFolderData } = useFolderContextData();
-  const favFolder = useMemo(
-    () => ({
-      id: "favorite",
-      name: "Favorite",
-      createdAt: "",
-      updatedAt: "",
-      deletedAt: "",
-    }),
-    [],
-  );
-  const trashFolder = useMemo(
-    () => ({
-      id: "trash",
-      name: "Trash",
-      createdAt: "",
-      updatedAt: "",
-      deletedAt: "",
-    }),
-    [],
-  );
-  const archivedFolder = useMemo(
-    () => ({
-      id: "archived",
-      name: "Archived",
-      createdAt: "",
-      updatedAt: "",
-      deletedAt: "",
-    }),
-    [],
-  );
+  const location = useLocation();
+  const navigator = useNavigate();
 
   return (
     <section>
@@ -46,12 +15,16 @@ export function MoreMenu() {
       <ul>
         <li>
           <NavLink
-            to="/dashboard/folder/favorite"
+            to="/dashboard/Favorite/favorite"
             className={({ isActive }) =>
               `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
             }
-            onClick={() => {
-              setFolderData(favFolder);
+            onClick={(e) => {
+              const pathFolderId = location.pathname.split("/")[3];
+              if (pathFolderId === "favorite") {
+                e.preventDefault();
+                navigator(`/dashboard/All Notes/all-notes`);
+              }
             }}
           >
             {({ isActive }) => (
@@ -68,12 +41,16 @@ export function MoreMenu() {
         </li>
         <li>
           <NavLink
-            to="/dashboard/folder/trash"
+            to="/dashboard/Trash/trash"
             className={({ isActive }) =>
               `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
             }
-            onClick={() => {
-              setFolderData(trashFolder);
+            onClick={(e) => {
+              const pathFolderId = location.pathname.split("/")[3];
+              if (pathFolderId === "trash") {
+                e.preventDefault();
+                navigator(`/dashboard/All Notes/all-notes`);
+              }
             }}
           >
             {({ isActive }) => (
@@ -90,12 +67,16 @@ export function MoreMenu() {
         </li>
         <li>
           <NavLink
-            to="/dashboard/folder/archived"
+            to="/dashboard/Archived/archived"
             className={({ isActive }) =>
               `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
             }
-            onClick={() => {
-              setFolderData(archivedFolder);
+            onClick={(e) => {
+              const pathFolderId = location.pathname.split("/")[3];
+              if (pathFolderId === "archived") {
+                e.preventDefault();
+                navigator(`/dashboard/All Notes/all-notes`);
+              }
             }}
           >
             {({ isActive }) => (

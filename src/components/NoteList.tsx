@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useFolderContextData } from "../context/FolderContext";
 import type { Note } from "../types/note";
 import { getFolderNotes } from "../api/notesApi";
+import { NavLink, useParams } from "react-router";
+import { useRefreshFolderContext } from "../context/FolderContext";
 
 export function NoteList() {
-  const { folderData } = useFolderContextData();
+  const { folderName, folderId } = useParams();
+  const { refreshFolder } = useRefreshFolderContext();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -23,7 +25,7 @@ export function NoteList() {
     setNotes([]);
     setHasMore(true);
     setErr("");
-  }, [folderData]);
+  }, [folderId, refreshFolder]);
 
   useEffect(() => {
     if (!hasMore) return;
@@ -58,7 +60,7 @@ export function NoteList() {
       setErr("");
 
       try {
-        const notesData = await getFolderNotes(folderData.id, page, limit);
+        const notesData = await getFolderNotes(folderId ? folderId : "", page, limit);
 
         if (cancelled) return;
 
@@ -86,18 +88,21 @@ export function NoteList() {
     return () => {
       cancelled = true;
     };
-  }, [folderData, page]);
+  }, [folderId, page, refreshFolder]);
 
   return (
-    <section className="bg-[#1C1C1C] text-[#FFFFFF] flex flex-col flex-25 gap-4 p-4 overflow-auto">
-      <h1 className="py-2 text-[22px] text-[rgba(255,255,255,1)]">{folderData.name}</h1>
+    <section className="bg-[#1C1C1C] text-[#FFFFFF] flex flex-col flex-25 gap-4 p-4 overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
+      <h1 className="py-2 text-[22px] text-[rgba(255,255,255,1)]">
+        {folderName}
+      </h1>
 
       {err && <p className="text-red-400">{err}</p>}
 
       {notes.map((note) => (
-        <section
+        <NavLink
+          to={`note/${note.id}`}
           key={note.id}
-          className="p-4 bg-[rgba(255,255,255,0.03)] rounded-[3px]"
+          className={({isActive}) => `p-4 rounded-[3px] ${isActive ? "bg-[rgba(255,255,255,0.1)]" : "bg-[rgba(255,255,255,0.03)]"}`}
         >
           <h2 className="py-2 text-[18px] text-[rgba(255,255,255,1)]">
             {note.title}
@@ -110,7 +115,7 @@ export function NoteList() {
               {note.preview}
             </p>
           </div>
-        </section>
+        </NavLink>
       ))}
 
       {loading && page === 1 && (
@@ -152,7 +157,7 @@ export function NoteList() {
           </p>
         </div>
       </section>
-      <section className="p-4 bg-[rgba(255,255,255,0.03)] rounded-[3px]">
+      <section className="p-4 bg-[rgba(255,255,255,0.1)] rounded-[3px]">
         <h2 className="py-2 text-[18px] text-[rgba(255,255,255,1)]">
           My Goals for the Next Year
         </h2>

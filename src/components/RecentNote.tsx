@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import fileLogo from "../assets/file-logo.svg";
-import { useFileId } from "../context/FileContext";
 import { getRecentFile } from "../api/notesApi";
 import type { Note } from "../types/note";
-import { NavLink } from "react-router";
+import { NavLink, useParams } from "react-router";
 
 export function RecentNote() {
-  const { fileId, setFileId } = useFileId();
+  const { noteId } = useParams();
   const [recentFile, setRecentFile] = useState<Note[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string>("");
@@ -24,7 +23,7 @@ export function RecentNote() {
     }
 
     loadRecentFile();
-  }, [fileId]);
+  }, [noteId]);
 
   if (loading) return <p>loading...</p>;
   if (err) return <p>{err}</p>;
@@ -43,9 +42,6 @@ export function RecentNote() {
               className={({ isActive }) =>
                 `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(49,46,181,1)]" : ""}`
               }
-              onClick={() => {
-                setFileId(note.id);
-              }}
             >
               {({ isActive }) => (
                 <>
