@@ -5,12 +5,17 @@ import archiveLogo from "../assets/archived-logo.svg";
 import favLogo from "../assets/fav-logo.svg";
 import binLogo from "../assets/bin-logo.svg";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
-import { getNote } from "../api/notesApi";
+import { useNavigate, useParams } from "react-router";
+import { deleteNote, getNote, updateNote } from "../api/notesApi";
 import type { CreateNote } from "../types/note";
+import { toast } from "sonner";
+import { useRefreshFileContext } from "../context/FileContext";
+import { useRefreshFolderContext } from "../context/FolderContext";
+import { useFolderListContext } from "../context/FolderListContext";
 
 export function NoteDetail() {
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hasFolderListOpen, setHasFolderListOpen] = useState(false);
   const [note, setNote] = useState<CreateNote>({
     folderId: "",
     title: "",
@@ -18,27 +23,52 @@ export function NoteDetail() {
     isFavorite: false,
     isArchived: false,
   });
-  const { noteId, folderId } = useParams();
+  const { setRefreshFile } = useRefreshFileContext();
+  const { setRefreshFolder } = useRefreshFolderContext();
+  const { folderList } = useFolderListContext();
+  const navigate = useNavigate();
+  const { noteId } = useParams();
+  const [hasIntialNote, setHasIntialNote] = useState(true);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target;
+      if (!(target instanceof Element)) return;
 
+      if (
+        target.closest("[data-menu-trigger]") ||
+        target.closest("[data-menu-content]")
+      )
+        return;
+
+      setIsMenuOpen(false);
+      setHasFolderListOpen(false);
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setHasIntialNote(true);
     async function loadNote() {
       if (!noteId) return;
-
       try {
         const noteData = await getNote(noteId);
-
-        if (cancelled)   return;
+        if (cancelled) return;
         setNote({
-          folderId: folderId ? folderId : "",
+          folderId: noteData.folderId ? noteData.folderId : "",
           title: noteData.title,
           content: noteData.content ? noteData.content : "",
           isFavorite: noteData.isFavorite,
-          isArchived: noteData.isArchived
-        })
+          isArchived: noteData.isArchived,
+        });
       } catch (e) {
         if (!cancelled) {
           setErr("failed to load note!");
@@ -57,8 +87,37 @@ export function NoteDetail() {
     };
   }, [noteId]);
 
-  function handleMenuToggle(): void {
-    setIsMenuOpen(!isMenuOpen);
+  useEffect(() => {
+    if (hasIntialNote) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const message = await updateNote(note, noteId ? noteId : "");
+        setRefreshFile((prev) => prev + 1);
+        setRefreshFolder((prev) => prev + 1);
+        toast.success(message);
+      } catch (err) {
+        console.log(err);
+        toast.error("failed to update file");
+      }
+    }, 1500);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [note]);
+
+  async function handleDeleteNote(noteId: string) {
+    try {
+      const message = await deleteNote(noteId);
+      toast.success(message);
+      setRefreshFile((prev) => prev + 1);
+      setRefreshFolder((prev) => prev + 1);
+      navigate(`../`);
+    } catch (err) {
+      console.log(err);
+      toast.error("failed to delete note");
+    }
   }
 
   if (loading)
@@ -83,7 +142,8 @@ export function NoteDetail() {
           type="text"
           className="text-[32px] text-[rgba(255,255,255,1)] w-[90%]"
           onChange={(e) => {
-            setNote((prev) => ({...prev, title: e.target.value}))
+            setHasIntialNote(false);
+            setNote((prev) => ({ ...prev, title: e.target.value }));
           }}
           value={note.title}
         />
@@ -91,26 +151,61 @@ export function NoteDetail() {
           <img
             src={optionLogo}
             alt="option-logo"
-            onClick={handleMenuToggle}
-            className=""
+            onClick={() => {
+              setIsMenuOpen((prev) => !prev);
+            }}
+            data-menu-trigger
           />
           {isMenuOpen && (
-            <div className="absolute top-12 right-0 bg-[#333333] w-50 rounded-md">
+            <div
+              className="absolute top-12 right-0 bg-[#333333] w-50 rounded-md"
+              data-menu-content
+            >
               <ul className="flex flex-col">
-                <li className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]">
+                <li
+                  className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]"
+                  onClick={() => {
+                    setHasIntialNote(false);
+                    setNote((prev) => ({
+                      ...prev,
+                      isFavorite: !prev.isFavorite,
+                    }));
+                  }}
+                >
                   <img src={favLogo} alt="favorite-logo" />
-                  <a href="#">Add to favorites</a>
+                  <button className="cursor-pointer text-left">
+                    {!note.isFavorite
+                      ? "Add to favorites"
+                      : "Remove from favorites"}
+                  </button>
                 </li>
-                <li className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]">
+                <li
+                  className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]"
+                  onClick={() => {
+                    setHasIntialNote(false);
+                    setNote((prev) => ({
+                      ...prev,
+                      isArchived: !prev.isArchived,
+                    }));
+                  }}
+                >
                   <img src={archiveLogo} alt="archived-logo" />
-                  <a href="#">Archived</a>
+                  <button className="cursor-pointer">
+                    {!note.isArchived ? "Archived" : "Unarchived"}
+                  </button>
                 </li>
                 <li className="px-4 py-2">
                   <hr className="text-[rgba(255,255,255,0.05)]" />
                 </li>
-                <li className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]">
+                <li
+                  className="flex gap-4 px-4 py-2 hover:bg-[rgba(255,255,255,0.03)]"
+                  onClick={() => {
+                    if (!noteId) return;
+                    handleDeleteNote(noteId);
+                  }}
+                >
                   <img src={binLogo} alt="bin-logo" />
-                  <a href="#">Delete</a>
+                  <button className="cursor-pointer">Delete</button>
                 </li>
               </ul>
             </div>
@@ -119,19 +214,73 @@ export function NoteDetail() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <div className="flex gap-6">
-          <img src={dateLogo} alt="date-logo" />
-          <div className="flex gap-24">
-            <p className="text-[14px] text-[rgba(255,255,255,0.6)]">Date</p>
-            <p className="text-[14px] text-[rgba(255,255,255,1)]">21/06/2026</p>
+        <div className="flex gap-[10%] w-[35%]">
+          <img src={dateLogo} alt="date-logo" className="w-[8%]" />
+          <div className="flex w-[82%]">
+            <p className="text-[14px] text-[rgba(255,255,255,0.6)] w-[60%]">
+              Date
+            </p>
+            <p className="text-[14px] text-[rgba(255,255,255,1)] w-[40%] underline">
+              21/06/2026
+            </p>
           </div>
         </div>
         <hr className="border-0 border-t border-t-[rgba(255,255,255,0.1)]" />
-        <div className="flex gap-6">
-          <img src={folderLogo} alt="folder-logo" />
-          <div className="flex gap-24">
-            <p className="text-[14px] text-[rgba(255,255,255,0.6)]">Folder</p>
-            <p className="text-[14px] text-[rgba(255,255,255,1)]">Personal</p>
+        <div className="flex gap-[10%] w-[35%]">
+          <img src={folderLogo} alt="folder-logo" className="w-[8%]" />
+          <div className="flex w-[82%]">
+            <p className="text-[14px] text-[rgba(255,255,255,0.6)] w-[60%]">
+              Folder
+            </p>
+            <div className="relative text-[14px] bg-[#181818] text-[rgba(255,255,255,1)] w-[40%]">
+              <button
+                className="w-full text-left underline hover:bg-[#333333] rounded-[3px] p-1"
+                onClick={() => {
+                  setHasFolderListOpen((prev) => !prev);
+                }}
+                data-menu-trigger
+              >
+                {
+                  folderList.filter((folder) => folder.id === note.folderId)[0]
+                    ?.name
+                }
+              </button>
+              {hasFolderListOpen && (
+                <div
+                  className="absolute bg-[#333333] rounded-md w-50 h-70 overflow-y-auto scrollbar-thin [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]"
+                  data-menu-content
+                >
+                  {" "}
+                  {folderList.map((folder) => (
+                    <button
+                      key={folder.id}
+                      className="p-2 w-full text-left hover:bg-[rgba(255,255,255,0.03)]"
+                      onClick={() => {
+                        setHasIntialNote(false);
+                        setHasFolderListOpen(false);
+                        setNote((prev) => ({ ...prev, folderId: folder.id }));
+                      }}
+                    >
+                      {folder.name}
+                    </button>
+                  ))}{" "}
+                </div>
+              )}
+            </div>
+            {/* <select
+              className="appearance-none outline-none text-[14px] bg-[#181818] text-[rgba(255,255,255,1)] w-[40%] underline overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]"
+              value={note.folderId}
+              onChange={(e) => {
+                setHasIntialNote(false);
+                setNote((prev) => ({...prev, folderId: e.target.value}));
+              }}
+            >
+              {folderList.map((folder) => (
+                <option id={folder.id} value={folder.id}>
+                  {folder.name}
+                </option>
+              ))}
+            </select> */}
           </div>
         </div>
       </section>
@@ -139,7 +288,8 @@ export function NoteDetail() {
       <textarea
         value={note.content}
         onChange={(e) => {
-          setNote((prev) => ({...prev, content: e.target.value}));
+          setHasIntialNote(false);
+          setNote((prev) => ({ ...prev, content: e.target.value }));
         }}
         rows={30}
         className="overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]"

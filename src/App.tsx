@@ -4,23 +4,29 @@ import { NoteList } from "./components/NoteList";
 // import { SelectNotePage } from './components/SelectNotePage'
 // import { NoteDetail } from "./components/NoteDetail";
 import { Outlet } from "react-router";
-import { FileProvider } from "./context/FileContext";
+import { RefreshFileProvider } from "./context/FileContext";
 import { RefreshFolderProvider } from "./context/FolderContext";
+import { SearchContextProvider } from "./context/SearchContext";
+import { FolderListProvider } from "./context/FolderListContext";
 
 function App() {
   return (
-    <FileProvider>
+    <RefreshFileProvider>
       <RefreshFolderProvider>
-        <main className="flex h-screen">
-          <SideBar />
-          <NoteList />
-          <Outlet />
-          {/* <NoteDetail /> */}
-          {/* <SelectNotePage /> */}
-          {/* <RestoreNotePage /> */}
-        </main>
+        <FolderListProvider>
+          <SearchContextProvider>
+            <main className="flex h-screen">
+              <SideBar />
+              <NoteList />
+              <Outlet />
+              {/* <NoteDetail /> */}
+              {/* <SelectNotePage /> */}
+              {/* <RestoreNotePage /> */}
+            </main>
+          </SearchContextProvider>
+        </FolderListProvider>
       </RefreshFolderProvider>
-    </FileProvider>
+    </RefreshFileProvider>
   );
 }
 

@@ -3,10 +3,12 @@ import type { Note } from "../types/note";
 import { getFolderNotes } from "../api/notesApi";
 import { NavLink, useParams } from "react-router";
 import { useRefreshFolderContext } from "../context/FolderContext";
+import { useSearchContext } from "../context/SearchContext";
 
 export function NoteList() {
   const { folderName, folderId } = useParams();
   const { refreshFolder } = useRefreshFolderContext();
+  const { searchValue } = useSearchContext();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -25,7 +27,7 @@ export function NoteList() {
     setNotes([]);
     setHasMore(true);
     setErr("");
-  }, [folderId, refreshFolder]);
+  }, [folderId, refreshFolder, searchValue]);
 
   useEffect(() => {
     if (!hasMore) return;
@@ -60,7 +62,7 @@ export function NoteList() {
       setErr("");
 
       try {
-        const notesData = await getFolderNotes(folderId ? folderId : "", page, limit);
+        const notesData = await getFolderNotes(folderId ? folderId : "", page, limit, searchValue);
 
         if (cancelled) return;
 
@@ -88,7 +90,7 @@ export function NoteList() {
     return () => {
       cancelled = true;
     };
-  }, [folderId, page, refreshFolder]);
+  }, [folderId, page, refreshFolder, searchValue]);
 
   return (
     <section className="bg-[#1C1C1C] text-[#FFFFFF] flex flex-col flex-25 gap-4 p-4 overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
@@ -100,9 +102,9 @@ export function NoteList() {
 
       {notes.map((note) => (
         <NavLink
-          to={`note/${note.id}`}
+          to={`note/${note.id}${folderId === "trash" ? "/trash" : ""}`}
           key={note.id}
-          className={({isActive}) => `p-4 rounded-[3px] ${isActive ? "bg-[rgba(255,255,255,0.1)]" : "bg-[rgba(255,255,255,0.03)]"}`}
+          className={({isActive}) => `p-4 rounded-[3px] hover:bg-[rgba(255,255,255,0.1)] ${isActive ? "bg-[rgba(255,255,255,0.1)]" : "bg-[rgba(255,255,255,0.03)]"}`}
         >
           <h2 className="py-2 text-[18px] text-[rgba(255,255,255,1)]">
             {note.title}

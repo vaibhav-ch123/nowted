@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import fileLogo from "../assets/file-logo.svg";
 import { getRecentFile } from "../api/notesApi";
 import type { Note } from "../types/note";
-import { NavLink, useParams } from "react-router";
+import { NavLink } from "react-router";
+import { useRefreshFileContext } from "../context/FileContext";
 
 export function RecentNote() {
-  const { noteId } = useParams();
   const [recentFile, setRecentFile] = useState<Note[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string>("");
+  const {refreshFile} = useRefreshFileContext();
 
   useEffect(() => {
     async function loadRecentFile() {
@@ -23,10 +24,10 @@ export function RecentNote() {
     }
 
     loadRecentFile();
-  }, [noteId]);
+  }, [refreshFile]);
 
-  if (loading) return <p>loading...</p>;
-  if (err) return <p>{err}</p>;
+  if (loading) return <p className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">loading...</p>;
+  if (err) return <p className="px-[6%] py-2 text-red-400 text-[14px]">{err}</p>;
 
   return (
     <section>
@@ -38,9 +39,9 @@ export function RecentNote() {
         {recentFile?.map((note) => (
           <li key={note.id}>
             <NavLink
-              to={`note/${note.id}`}
+              to={`/dashboard/${note.folder.name}/${note.folderId}/note/${note.id}`}
               className={({ isActive }) =>
-                `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(49,46,181,1)]" : ""}`
+                `px-[6%] py-2 flex items-center gap-4 hover:bg-[rgba(49,46,181,1)] ${isActive ? "bg-[rgba(49,46,181,1)]" : ""}`
               }
             >
               {({ isActive }) => (

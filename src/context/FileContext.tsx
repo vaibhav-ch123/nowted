@@ -1,28 +1,28 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 
-type FileContextType = {
-    fileId: string,
-    setFileId: React.Dispatch<React.SetStateAction<string>>
+type RefreshFileContextType = {
+    refreshFile: number,
+    setRefreshFile: React.Dispatch<React.SetStateAction<number>>
 }
 
-const FileContext = createContext<FileContextType | undefined>(undefined);
+const RefreshFileContext = createContext<RefreshFileContextType | undefined>(undefined);
 
-export function FileProvider({children}: {children: ReactNode}) {
+export function RefreshFileProvider({children}: {children: ReactNode}) {
 
-    const [fileId, setFileId] = useState<string>("");
-    const value = useMemo(() => ({fileId, setFileId}), [fileId]);
+    const [refreshFile, setRefreshFile] = useState<number>(0);
+    const value = useMemo(() => ({refreshFile, setRefreshFile}), [refreshFile]);
     
     return (
-      <FileContext value={value}>
+      <RefreshFileContext value={value}>
         {children}
-      </FileContext>
+      </RefreshFileContext>
     );
 }
 
-export function useFileId() {
-  const context = useContext(FileContext);
+export function useRefreshFileContext() {
+  const context = useContext(RefreshFileContext);
 
-  if(!context)     throw new Error("useFileId must be use inside fileProvider");
+  if(!context)     throw new Error("useRefreshFile must be use inside RefreshFileProvider");
 
   return context;
 }

@@ -17,7 +17,7 @@ export function MoreMenu() {
           <NavLink
             to="/dashboard/Favorite/favorite"
             className={({ isActive }) =>
-              `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
+              `px-[6%] py-2 flex items-center gap-4 hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
             }
             onClick={(e) => {
               const pathFolderId = location.pathname.split("/")[3];
@@ -43,7 +43,7 @@ export function MoreMenu() {
           <NavLink
             to="/dashboard/Trash/trash"
             className={({ isActive }) =>
-              `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
+              `px-[6%] py-2 flex items-center gap-4 hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
             }
             onClick={(e) => {
               const pathFolderId = location.pathname.split("/")[3];
@@ -69,7 +69,7 @@ export function MoreMenu() {
           <NavLink
             to="/dashboard/Archived/archived"
             className={({ isActive }) =>
-              `px-[6%] py-2 flex items-center gap-4 ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
+              `px-[6%] py-2 flex items-center gap-4 hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
             }
             onClick={(e) => {
               const pathFolderId = location.pathname.split("/")[3];

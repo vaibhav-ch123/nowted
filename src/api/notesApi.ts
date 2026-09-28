@@ -7,7 +7,7 @@ export async function getRecentFile(): Promise<Note[]> {
   return res.data.recentNotes;   
 }
 
-export async function getFolderNotes(folderId: string, page: number, limit: number): Promise<Note[]> {
+export async function getFolderNotes(folderId: string, page: number, limit: number, searchValue: string): Promise<Note[]> {
 
   let res: AxiosResponse<Notes, any, {}, any>;
 
@@ -18,6 +18,7 @@ export async function getFolderNotes(folderId: string, page: number, limit: numb
         deleted: false,
         page,
         limit,
+        search: searchValue,
       },
     });
   } else if(folderId === "archived"){
@@ -27,6 +28,7 @@ export async function getFolderNotes(folderId: string, page: number, limit: numb
         deleted: false,
         page,
         limit,
+        search: searchValue,
       }
     });
   } else if(folderId === "trash"){
@@ -35,6 +37,7 @@ export async function getFolderNotes(folderId: string, page: number, limit: numb
         deleted: true,
         page,
         limit,
+        search: searchValue,
       }
     });
   } else if(folderId === "all-notes"){
@@ -43,6 +46,7 @@ export async function getFolderNotes(folderId: string, page: number, limit: numb
         deleted: false,
         page,
         limit,
+        search: searchValue,
       }
     });
   } else {
@@ -52,6 +56,7 @@ export async function getFolderNotes(folderId: string, page: number, limit: numb
         folderId,
         page,
         limit,
+        search: searchValue,
       }
     });
   }
@@ -69,7 +74,17 @@ export async function createNote(note: CreateNote): Promise<string> {
   return res.data.id;
 }
 
-export async function updateNote(note: CreateNote, noteId: string) {
-  const res = await api.patch<string>(`/note/${noteId}`, note);
-  return res.data
+export async function updateNote(note: CreateNote, noteId: string): Promise<string> {
+  const res = await api.patch<string>(`/notes/${noteId}`, note);
+  return res.data;
+}
+
+export async function deleteNote(noteId: string): Promise<string> {
+  const res = await api.delete<string>(`notes/${noteId}`);
+  return res.data;
+}
+
+export async function restoreNote(noteId: string): Promise<string> {
+  const res = await api.post<string>(`notes/${noteId}/restore`);
+  return res.data;
 }
