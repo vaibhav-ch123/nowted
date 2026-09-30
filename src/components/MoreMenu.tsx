@@ -9,7 +9,7 @@ export function MoreMenu() {
 
   return (
     <section>
-      <h2 className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">
+      <h2 className="px-[6%] py-2 text-black dark:text-[rgba(255,255,255,0.6)] text-[14px]">
         More
       </h2>
       <ul>
@@ -17,7 +17,7 @@ export function MoreMenu() {
           <NavLink
             to="/dashboard/Favorite/favorite"
             className={({ isActive }) =>
-              `px-[6%] py-2 flex items-center gap-4 hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
+              `px-[6%] py-2 flex items-center gap-4 hover:bg-gray-100 dark:hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "dark:bg-[rgba(255,255,255,0.03)] bg-gray-100" : ""}`
             }
             onClick={(e) => {
               const pathFolderId = location.pathname.split("/")[3];
@@ -29,9 +29,13 @@ export function MoreMenu() {
           >
             {({ isActive }) => (
               <>
-                <img src={favoritesLogo} alt="favorites-logo" />
+                <img
+                  src={favoritesLogo}
+                  alt="favorites-logo"
+                  className="invert dark:invert-0"
+                />
                 <p
-                  className={`${isActive ? "text-[rgba(255,255,255,1)]" : "text-[rgba(255,255,255,0.6)]"} text-[16px]`}
+                  className={`${isActive ? "dark:text-[rgba(255,255,255,1)]" : "dark:text-[rgba(255,255,255,0.6)]"} text-black text-[16px]`}
                 >
                   Favorites
                 </p>
@@ -43,7 +47,7 @@ export function MoreMenu() {
           <NavLink
             to="/dashboard/Trash/trash"
             className={({ isActive }) =>
-              `px-[6%] py-2 flex items-center gap-4 hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
+              `px-[6%] py-2 flex items-center gap-4 hover:bg-gray-100 dark:hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "dark:bg-[rgba(255,255,255,0.03)] bg-gray-100" : ""}`
             }
             onClick={(e) => {
               const pathFolderId = location.pathname.split("/")[3];
@@ -55,9 +59,13 @@ export function MoreMenu() {
           >
             {({ isActive }) => (
               <>
-                <img src={trashLogo} alt="trash-logo" />
+                <img
+                  src={trashLogo}
+                  alt="trash-logo"
+                  className="invert dark:invert-0"
+                />
                 <p
-                  className={`${isActive ? "text-[rgba(255,255,255,1)]" : "text-[rgba(255,255,255,0.6)]"} text-[16px]`}
+                  className={`${isActive ? "dark:text-[rgba(255,255,255,1)]" : "dark:text-[rgba(255,255,255,0.6)]"} text-black text-[16px]`}
                 >
                   Trash
                 </p>
@@ -69,7 +77,7 @@ export function MoreMenu() {
           <NavLink
             to="/dashboard/Archived/archived"
             className={({ isActive }) =>
-              `px-[6%] py-2 flex items-center gap-4 hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
+              `px-[6%] py-2 flex items-center gap-4 hover:bg-gray-100 dark:hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "dark:bg-[rgba(255,255,255,0.03)] bg-gray-100" : ""}`
             }
             onClick={(e) => {
               const pathFolderId = location.pathname.split("/")[3];
@@ -81,9 +89,13 @@ export function MoreMenu() {
           >
             {({ isActive }) => (
               <>
-                <img src={archivedLogo} alt="archived-logo" />
+                <img
+                  src={archivedLogo}
+                  alt="archived-logo"
+                  className="invert dark:invert-0"
+                />
                 <p
-                  className={`${isActive ? "text-[rgba(255,255,255,1)]" : "text-[rgba(255,255,255,0.6)]"} text-[16px]`}
+                  className={`${isActive ? "dark:text-[rgba(255,255,255,1)]" : "dark:text-[rgba(255,255,255,0.6)]"} text-black text-[16px]`}
                 >
                   Archived Notes
                 </p>

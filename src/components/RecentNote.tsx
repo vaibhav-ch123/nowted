@@ -7,11 +7,12 @@ import { useRefreshFileContext } from "../context/FileContext";
 
 export function RecentNote() {
   const [recentFile, setRecentFile] = useState<Note[] | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [err, setErr] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
   const {refreshFile} = useRefreshFileContext();
 
   useEffect(() => {
+    setErr("");
     async function loadRecentFile() {
       try {
         const recentFile = await getRecentFile();
@@ -31,7 +32,7 @@ export function RecentNote() {
 
   return (
     <section>
-      <h2 className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">
+      <h2 className="px-[6%] py-2 text-black dark:text-[rgba(255,255,255,0.6)] text-[14px]">
         Recents
       </h2>
 
@@ -46,8 +47,8 @@ export function RecentNote() {
             >
               {({ isActive }) => (
                 <>
-                  <img src={fileLogo} alt="file-logo" />
-                  <p className={`${isActive ? "text-[rgba(255,255,255,1)]" : "text-[rgba(255,255,255,0.6)]"} text-[16px]`}>
+                  <img src={fileLogo} alt="file-logo" className="invert dark:invert-0" />
+                  <p className={`${isActive ? "dark:text-[rgba(255,255,255,1)]" : "dark:text-[rgba(255,255,255,0.6)]"} text-black truncate text-[16px]`}>
                     {note.title}
                   </p>
                 </>

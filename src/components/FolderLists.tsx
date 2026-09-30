@@ -12,10 +12,12 @@ import {
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { useFolderListContext } from "../context/FolderListContext";
 import { toast } from "sonner";
+import { useRefreshFileContext } from "../context/FileContext";
 
 export function FolderLists() {
   const [refreshFolderList, setRefreshFolderList] = useState(0);
   const { folderList, setFolderList } = useFolderListContext();
+  const { setRefreshFile } = useRefreshFileContext();
   const [folderName, setFolderName] = useState("");
   const [openCreateFolderInput, setOpenCreateFolderInput] = useState(false);
   const [editFolderId, setEditFolderId] = useState("");
@@ -48,6 +50,7 @@ export function FolderLists() {
   }, []);
 
   useEffect(() => {
+    setErr("");
     async function loadFolders() {
       try {
         const foldersData = await getFolders();
@@ -93,6 +96,8 @@ export function FolderLists() {
       const message = await deleteFolder(folderId);
       toast.success(message);
       setRefreshFolderList((prev) => prev + 1);
+      setRefreshFile((prev) => prev+1);
+      navigate("/dashboard/All Notes/all-notes")
     } catch (err) {
       console.log(err);
       toast.error("failed to delete folder");
@@ -101,7 +106,7 @@ export function FolderLists() {
 
   if (loading)
     return (
-      <p className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">
+      <p className="px-[6%] py-2 text-black dark:text-[rgba(255,255,255,0.6)] text-[14px]">
         loading...
       </p>
     );
@@ -110,13 +115,13 @@ export function FolderLists() {
     return <p className="px-[6%] py-2 text-red-400 text-[14px]">{err}</p>;
 
   return (
-    <section className="h-[30%] overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
+    <section className="h-[30%] overflow-auto [scrollbar-color:#d1d5db_#e5e7eb] dark:[scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
       <div className="px-[6%] py-2 flex justify-between">
-        <h2 className="text-[rgba(255,255,255,0.6)] text-[14px]">Folders</h2>
+        <h2 className="text-black dark:text-[rgba(255,255,255,0.6)] text-[14px]">Folders</h2>
         <img
           src={addFolderLogo}
           alt="add-folder-logo"
-          className="cursor-pointer"
+          className="cursor-pointer invert dark:invert-0"
           data-menu-trigger
           onClick={() => {
             setOpenCreateFolderInput(true);
@@ -128,12 +133,12 @@ export function FolderLists() {
 
       {openCreateFolderInput && (
         <div
-          className="bg-[rgba(255,255,255,0.03)] px-[6%] py-2 flex items-center gap-4"
+          className="bg-white dark:bg-[rgba(255,255,255,0.03)] px-[6%] py-2 flex items-center gap-4"
           data-menu-content
         >
-          <img src={folderOpenLogo} alt="folder-open-logo" />
+          <img src={folderOpenLogo} alt="folder-open-logo" className="invert dark:invert-0" />
           <input
-            className="text-[rgba(255,255,255,1)] border border-[rgba(255,255,255,0.4)] outline-none text-[16px] w-[50%]"
+            className="text-black dark:text-[rgba(255,255,255,1)] border border-black dark:border-[rgba(255,255,255,0.4)] outline-none text-[16px] w-[50%]"
             value={folderName}
             onChange={(e) => {
               setFolderName(e.target.value);
@@ -157,9 +162,9 @@ export function FolderLists() {
                 className="px-[6%] py-2 flex items-center gap-4"
                 data-menu-content
               >
-                <img src={folderOpenLogo} alt="folder-open-logo" />
+                <img src={folderOpenLogo} alt="folder-open-logo" className="invert dark:invert-0" />
                 <input
-                  className="text-[rgba(255,255,255,1)] border border-[rgba(255,255,255,0.4)] outline-none text-[16px] w-[50%]"
+                  className="text-black dark:text-[rgba(255,255,255,1)] border border-black dark:border-[rgba(255,255,255,0.4)] outline-none text-[16px] w-[50%]"
                   value={folderName}
                   onChange={(e) => {
                     setFolderName(e.target.value);
@@ -181,7 +186,7 @@ export function FolderLists() {
               <NavLink
                 to={`/dashboard/${folder.name}/${folder.id}`}
                 className={({ isActive }) =>
-                  `group px-[6%] py-2 flex items-center justify-between hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "bg-[rgba(255,255,255,0.03)]" : ""}`
+                  `group px-[6%] py-2 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-[rgba(255,255,255,0.03)] ${isActive ? "dark:bg-[rgba(255,255,255,0.03)] bg-gray-100" : ""}`
                 }
                 onClick={(e) => {
                   const pathFolderId = location.pathname.split("/")[3];
@@ -197,19 +202,21 @@ export function FolderLists() {
                       <img
                         src={isActive ? folderOpenLogo : folderLogo}
                         alt="folder-open-logo"
+                        className="invert dark:invert-0"
                       />
                       <p
-                        className={`${isActive ? "text-[rgba(255,255,255,1)]" : "text-[rgba(255,255,255,0.6)]"} text-[16px]`}
+                        className={`${isActive ? "dark:text-[rgba(255,255,255,1)]" : "dark:text-[rgba(255,255,255,0.6)]"} text-black truncate text-[16px]`}
                       >
                         {folder.name}
                       </p>
                     </div>
                     <div className="hidden group-hover:flex gap-4">
                       <button
-                        className="cursor-pointer text-[rgba(255,255,255,0.6)] hover:text-[rgba(255,255,255,1)]"
+                        className="cursor-pointer text-black dark:text-[rgba(255,255,255,0.6)] dark:hover:text-[rgba(255,255,255,1)]"
                         data-menu-trigger
                         onClick={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
                           setFolderName(folder.name);
                           setOpenCreateFolderInput(false);
                           setEditFolderId(folder.id);
@@ -222,11 +229,12 @@ export function FolderLists() {
                         className="cursor-pointer"
                         onClick={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
                           handleDeleteFolder(folder.id);
                         }}
                       >
                         {" "}
-                        <img src={trashLogo} className="w-3.5" />{" "}
+                        <img src={trashLogo} className="w-3.5 invert dark:invert-0" />{" "}
                       </button>
                     </div>
                   </>

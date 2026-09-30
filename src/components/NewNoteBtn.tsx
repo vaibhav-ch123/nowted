@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { createNote } from "../api/notesApi";
 import type { CreateNote } from "../types/note";
@@ -14,6 +14,7 @@ export function NewNoteBtn({ toggleSearch }: { toggleSearch: boolean }) {
   const { searchValue, setSearchValue } = useSearchContext();
   const [folderErr, setFolderErr] = useState("");
   const [searchInputValue, setSearchInputValue] = useState(searchValue);
+  let warningTimer = useRef(0);
 
   useEffect(() => {
 
@@ -47,7 +48,14 @@ export function NewNoteBtn({ toggleSearch }: { toggleSearch: boolean }) {
     setFolderErr("");
 
     if (!folderId || folderId.length < 15) {
+
+      clearTimeout(warningTimer.current);
       setFolderErr("Select a folder first!");
+
+      warningTimer.current = setTimeout(() => {
+        setFolderErr(""); 
+      }, 3000);
+
       return;
     }
 
@@ -56,22 +64,22 @@ export function NewNoteBtn({ toggleSearch }: { toggleSearch: boolean }) {
 
   return (
     <div className="px-[6%] text-center">
-      {folderErr && <p className="text-red-400">{folderErr}</p>}
       {toggleSearch ? (
         <button
-          className="w-full rounded-[3px] bg-[rgba(255,255,255,0.05)] text-[#FFFFFF] text-[16px] py-2 cursor-pointer"
-          onClick={handleNewNote}
+        className="w-full rounded-[3px] bg-white text-black dark:bg-[rgba(255,255,255,0.05)] dark:text-[#FFFFFF] text-[16px] py-2 cursor-pointer"
+        onClick={handleNewNote}
         >
           + New Note
         </button>
       ) : (
         <input
-          className="w-full rounded-[3px] bg-[rgba(255,255,255,0.05)] text-[#FFFFFF] text-[16px] p-2"
-          placeholder="Enter you want to search.."
-          value={searchInputValue}
-          onChange={(e) => { setSearchInputValue(e.target.value) }}
+        className="w-full rounded-[3px] bg-white text-black dark:bg-[rgba(255,255,255,0.05)] dark:text-[#FFFFFF] text-[16px] p-2"
+        placeholder="Enter you want to search.."
+        value={searchInputValue}
+        onChange={(e) => { setSearchInputValue(e.target.value) }}
         />
       )}
+      {folderErr && <p className="text-red-400">{folderErr}</p>}
     </div>
   );
 }

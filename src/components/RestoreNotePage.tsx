@@ -71,28 +71,28 @@ export function RestoreNotePage() {
 
   if (loading)
     return (
-      <p className="bg-[#181818] text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10">
+      <p className="bg-gray-200 dark:bg-[#181818] text-black dark:text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10">
         Loading..
       </p>
     );
 
   if (err)
     return (
-      <p className="bg-[#181818] text-red-400 flex flex-col flex-55 gap-6 px-8 py-10">
+      <p className="bg-gray-200 dark:bg-[#181818] text-red-400 flex flex-col flex-55 gap-6 px-8 py-10">
         {err}
       </p>
     );
 
   return (
-    <section className="bg-[#181818] flex flex-col justify-center items-center gap-2 flex-55 py-10 px-8 text-center overflow-auto">
-      <img src={restoreFileImg} alt="file-logo" className="h-20 w-20" />
-      <h1 className="text-[#FFFFFF] text-[28px]">Restore "{note.title}"</h1>
-      <p className="text-[rgba(255,255,255,0.6)] text-[16px]">
+    <section className="bg-gray-200 dark:bg-[#181818] flex flex-col justify-center items-center gap-2 flex-55 py-10 px-8 text-center overflow-auto">
+      <img src={restoreFileImg} alt="file-logo" className="h-20 w-20 invert dark:invert-0" />
+      <h1 className="text-black dark:text-[#FFFFFF] text-[28px]">Restore "{note.title}"</h1>
+      <p className="text-black dark:text-[rgba(255,255,255,0.6)] text-[16px]">
         Don't want to lose this note? It's not to late! Just click the 'Restore'
         button and it will be added back to your list. It's that simple.
       </p>
       <button
-        className="bg-[rgba(49,46,181,1)] text-[#FFFFFF] text-[16px] rounded-md px-6 py-2"
+        className="bg-[rgba(49,46,181,1)] text-black dark:text-[#FFFFFF] text-[16px] rounded-md px-6 py-2"
         onClick={() => {
           if (!noteId) return;
           handleRestoreNote(noteId);
