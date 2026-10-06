@@ -24,22 +24,17 @@ export function NoteList() {
 
   useEffect(() => {
     setPage(1);
-    setNotes([]);
     setHasMore(true);
     setErr("");
   }, [folderId, refreshFolder, searchValue]);
 
   useEffect(() => {
-    if (!hasMore) return;
-
+    if (!hasMore)  return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !loadingRef.current) {
           setPage((prev) => prev + 1);
         }
-      },
-      {
-        rootMargin: "200px",
       },
     );
 
@@ -62,8 +57,12 @@ export function NoteList() {
       setErr("");
 
       try {
-        const notesData = await getFolderNotes(folderId ? folderId : "", page, limit, searchValue);
-
+        const notesData = await getFolderNotes(
+          folderId ? folderId : "",
+          page,
+          limit,
+          searchValue,
+        );
         if (cancelled) return;
 
         setNotes((notes) => {
@@ -74,8 +73,11 @@ export function NoteList() {
         if (notesData.length < limit) {
           setHasMore(false);
         }
-      } catch (e) {
+      } catch (err) {
         if (!cancelled) {
+          if (err instanceof Error) {
+            console.log(err.message);
+          }
           setErr("failed to load notes");
         }
       } finally {
@@ -104,7 +106,9 @@ export function NoteList() {
         <NavLink
           to={`note/${note.id}${folderId === "trash" ? "/trash" : ""}`}
           key={note.id}
-          className={({isActive}) => `p-4 rounded-[3px] hover:bg-gray-100 dark:hover:bg-[rgba(255,255,255,0.1)] ${isActive ? "dark:bg-[rgba(255,255,255,0.1)] bg-gray-100" : "dark:bg-[rgba(255,255,255,0.03)] bg-gray-200"}`}
+          className={({ isActive }) =>
+            `p-4 rounded-[3px] hover:bg-gray-100 dark:hover:bg-[rgba(255,255,255,0.1)] ${isActive ? "dark:bg-[rgba(255,255,255,0.1)] bg-gray-100" : "dark:bg-[rgba(255,255,255,0.03)] bg-gray-200"}`
+          }
         >
           <h2 className="py-2 text-[18px] text-black dark:text-[rgba(255,255,255,1)] truncate">
             {note.title}

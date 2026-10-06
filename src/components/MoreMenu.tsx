@@ -6,7 +6,6 @@ import { NavLink, useLocation, useNavigate } from "react-router";
 export function MoreMenu() {
   const location = useLocation();
   const navigator = useNavigate();
-
   return (
     <section>
       <h2 className="px-[6%] py-2 text-black dark:text-[rgba(255,255,255,0.6)] text-[14px]">

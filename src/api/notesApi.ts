@@ -1,15 +1,22 @@
 import type { AxiosResponse } from "axios";
 import type { CreateNote, GetNote, Note, Notes, RecentNotes } from "../types/note";
 import api from "./api";
+import type { ErrorType } from "../types/error";
 
 export async function getRecentFile(): Promise<Note[]> {
-  const res = await api.get<RecentNotes>("/notes/recent");   
-  return res.data.recentNotes;   
+
+  const res = await api.get<RecentNotes | ErrorType>("/notes/recent"); 
+
+  if("recentNotes" in res.data){
+    return res.data.recentNotes;
+  }
+
+  throw new Error(res.data.error);  
 }
 
 export async function getFolderNotes(folderId: string, page: number, limit: number, searchValue: string): Promise<Note[]> {
 
-  let res: AxiosResponse<Notes, any, {}, any>;
+  let res: AxiosResponse<Notes | ErrorType, any, {}, any>;
 
   if(folderId === "favorite"){
     res = await api.get<Notes>(`/notes`, {
@@ -61,30 +68,59 @@ export async function getFolderNotes(folderId: string, page: number, limit: numb
     });
   }
 
-  return res.data.notes;
+  if("notes" in res.data){
+    return res.data.notes;
+  }
+
+  throw new Error(res.data.error);
 }
 
 export async function getNote(noteId: string): Promise<Note> {
-  const res = await api.get<GetNote>(`/notes/${noteId}`);
-  return res.data.note;
+  const res = await api.get<GetNote | ErrorType>(`/notes/${noteId}`);
+
+  if("note" in res.data) {
+    return res.data.note;
+  }
+
+  throw new Error(res.data.error);
 }
 
 export async function createNote(note: CreateNote): Promise<string> {
-  const res = await api.post<{id: string}>("/notes", note);
-  return res.data.id;
+  const res = await api.post<{id: string} | ErrorType>("/notes", note);
+  
+  if("id" in res.data){
+    return res.data.id;
+  }
+
+  throw new Error(res.data.error);
 }
 
 export async function updateNote(note: CreateNote, noteId: string): Promise<string> {
-  const res = await api.patch<string>(`/notes/${noteId}`, note);
-  return res.data;
+  const res = await api.patch<string | ErrorType>(`/notes/${noteId}`, note);
+
+  if(typeof res.data === "string"){
+    return res.data;
+  }
+
+  throw new Error(res.data.error);
 }
 
 export async function deleteNote(noteId: string): Promise<string> {
-  const res = await api.delete<string>(`notes/${noteId}`);
-  return res.data;
+  const res = await api.delete<string | ErrorType>(`notes/${noteId}`);
+
+  if(typeof res.data === "string"){
+    return res.data;
+  }
+
+  throw new Error(res.data.error);
 }
 
 export async function restoreNote(noteId: string): Promise<string> {
-  const res = await api.post<string>(`notes/${noteId}/restore`);
-  return res.data;
+  const res = await api.post<string | ErrorType>(`notes/${noteId}/restore`);
+  
+  if(typeof res.data === "string"){
+    return res.data
+  }
+
+  throw new Error(res.data.error);
 }

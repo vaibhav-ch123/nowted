@@ -60,11 +60,13 @@ export function RestoreNotePage() {
     try {
       const message = await restoreNote(noteId);
       toast.success(message);
-      setRefreshFile(prev => prev+1);
-      setRefreshFolder(prev => prev+1);
+      setRefreshFile((prev) => prev + 1);
+      setRefreshFolder((prev) => prev + 1);
       navigate("../");
     } catch (err) {
-      console.log(err);
+      if (err instanceof Error) {
+        console.log(err.message);
+      }
       toast.error("failed to restore note");
     }
   }
@@ -85,8 +87,14 @@ export function RestoreNotePage() {
 
   return (
     <section className="bg-gray-200 dark:bg-[#181818] flex flex-col justify-center items-center gap-2 flex-55 py-10 px-8 text-center overflow-auto">
-      <img src={restoreFileImg} alt="file-logo" className="h-20 w-20 invert dark:invert-0" />
-      <h1 className="text-black dark:text-[#FFFFFF] text-[28px]">Restore "{note.title}"</h1>
+      <img
+        src={restoreFileImg}
+        alt="file-logo"
+        className="h-20 w-20 invert dark:invert-0"
+      />
+      <h1 className="text-black dark:text-[#FFFFFF] text-[28px]">
+        Restore "{note.title}"
+      </h1>
       <p className="text-black dark:text-[rgba(255,255,255,0.6)] text-[16px]">
         Don't want to lose this note? It's not to late! Just click the 'Restore'
         button and it will be added back to your list. It's that simple.

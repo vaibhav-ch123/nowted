@@ -7,7 +7,7 @@ import binLogo from "../assets/bin-logo.svg";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { deleteNote, getNote, updateNote } from "../api/notesApi";
-import type { CreateNote } from "../types/note";
+import type { CreateNote, Note } from "../types/note";
 import { toast } from "sonner";
 import { useRefreshFileContext } from "../context/FileContext";
 import { useRefreshFolderContext } from "../context/FolderContext";
@@ -16,13 +16,14 @@ import { useFolderListContext } from "../context/FolderListContext";
 export function NoteDetail() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasFolderListOpen, setHasFolderListOpen] = useState(false);
-  const [note, setNote] = useState<CreateNote>({
+  const [updateNoteValue, setUpdateNoteValue] = useState<CreateNote>({
     folderId: "",
     title: "",
     content: "",
     isFavorite: false,
     isArchived: false,
   });
+  const [note, setNote] = useState<Note | null>(null);
   const { setRefreshFile } = useRefreshFileContext();
   const { setRefreshFolder } = useRefreshFolderContext();
   const { folderList } = useFolderListContext();
@@ -63,15 +64,19 @@ export function NoteDetail() {
       try {
         const noteData = await getNote(noteId);
         if (cancelled) return;
-        setNote({
+        setNote(noteData);
+        setUpdateNoteValue({
           folderId: noteData.folderId ? noteData.folderId : "",
           title: noteData.title,
           content: noteData.content ? noteData.content : "",
           isFavorite: noteData.isFavorite,
           isArchived: noteData.isArchived,
         });
-      } catch (e) {
+      } catch (err) {
         if (!cancelled) {
+          if (err instanceof Error) {
+            console.log(err.message);
+          }
           setErr("failed to load note!");
         }
       } finally {
@@ -93,7 +98,18 @@ export function NoteDetail() {
 
     const timer = setTimeout(async () => {
       try {
-        const message = await updateNote(note, noteId ? noteId : "");
+        const message = await updateNote(updateNoteValue, noteId ? noteId : "");
+        setNote((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            folderId: updateNoteValue.folderId,
+            title: updateNoteValue.title,
+            content: updateNoteValue.content,
+            isArchived: updateNoteValue.isArchived,
+            isFavorite: updateNoteValue.isFavorite,
+          };
+        });
         setRefreshFile((prev) => prev + 1);
         setRefreshFolder((prev) => prev + 1);
         toast.success(message);
@@ -101,17 +117,20 @@ export function NoteDetail() {
           folderId !== "favorite" &&
           folderId !== "archived" &&
           folderId !== "all-notes" &&
-          note.folderId != folderId
+          updateNoteValue.folderId !== folderId
         )
           navigate("../");
 
         if (
-          (note.isArchived && folderId !== "archived") ||
-          (!note.isArchived && folderId === "archived")
+          (updateNoteValue.isArchived && folderId !== "archived") ||
+          (!updateNoteValue.isArchived && folderId === "archived") ||
+          (!updateNoteValue.isFavorite && folderId === "favorite")
         )
           navigate("../");
       } catch (err) {
-        console.log(err);
+        if (err instanceof Error) {
+          console.log(err.message);
+        }
         toast.error("failed to update file");
       }
     }, 1500);
@@ -119,7 +138,7 @@ export function NoteDetail() {
     return () => {
       clearTimeout(timer);
     };
-  }, [note]);
+  }, [updateNoteValue]);
 
   async function handleDeleteNote(noteId: string) {
     try {
@@ -129,7 +148,9 @@ export function NoteDetail() {
       setRefreshFolder((prev) => prev + 1);
       navigate(`../`);
     } catch (err) {
-      console.log(err);
+      if (err instanceof Error) {
+        console.log(err.message);
+      }
       toast.error("failed to delete note");
     }
   }
@@ -157,9 +178,9 @@ export function NoteDetail() {
           className="text-[32px] text-black dark:text-[rgba(255,255,255,1)] w-[90%]"
           onChange={(e) => {
             setHasIntialNote(false);
-            setNote((prev) => ({ ...prev, title: e.target.value }));
+            setUpdateNoteValue((prev) => ({ ...prev, title: e.target.value }));
           }}
-          value={note.title}
+          value={updateNoteValue.title}
         />
         <div className="relative cursor-pointer">
           <img
@@ -181,15 +202,19 @@ export function NoteDetail() {
                   className="flex gap-4 px-4 py-2 hover:bg-gray-400 dark:hover:bg-[rgba(255,255,255,0.03)]"
                   onClick={() => {
                     setHasIntialNote(false);
-                    setNote((prev) => ({
+                    setUpdateNoteValue((prev) => ({
                       ...prev,
                       isFavorite: !prev.isFavorite,
                     }));
                   }}
                 >
-                  <img src={favLogo} alt="favorite-logo" className="invert dark:invert-0" />
+                  <img
+                    src={favLogo}
+                    alt="favorite-logo"
+                    className="invert dark:invert-0"
+                  />
                   <button className="cursor-pointer text-left">
-                    {!note.isFavorite
+                    {!updateNoteValue.isFavorite
                       ? "Add to favorites"
                       : "Remove from favorites"}
                   </button>
@@ -198,15 +223,19 @@ export function NoteDetail() {
                   className="flex gap-4 px-4 py-2 hover:bg-gray-400 dark:hover:bg-[rgba(255,255,255,0.03)]"
                   onClick={() => {
                     setHasIntialNote(false);
-                    setNote((prev) => ({
+                    setUpdateNoteValue((prev) => ({
                       ...prev,
                       isArchived: !prev.isArchived,
                     }));
                   }}
                 >
-                  <img src={archiveLogo} alt="archived-logo" className="invert dark:invert-0" />
+                  <img
+                    src={archiveLogo}
+                    alt="archived-logo"
+                    className="invert dark:invert-0"
+                  />
                   <button className="cursor-pointer">
-                    {!note.isArchived ? "Archived" : "Unarchived"}
+                    {!updateNoteValue.isArchived ? "Archived" : "Unarchived"}
                   </button>
                 </li>
                 <li className="px-4 py-2">
@@ -219,7 +248,11 @@ export function NoteDetail() {
                     handleDeleteNote(noteId);
                   }}
                 >
-                  <img src={binLogo} alt="bin-logo" className="invert dark:invert-0" />
+                  <img
+                    src={binLogo}
+                    alt="bin-logo"
+                    className="invert dark:invert-0"
+                  />
                   <button className="cursor-pointer">Delete</button>
                 </li>
               </ul>
@@ -229,21 +262,29 @@ export function NoteDetail() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <div className="flex gap-[10%] w-[35%]">
-          <img src={dateLogo} alt="date-logo" className="w-[8%] invert dark:invert-0" />
-          <div className="flex w-[82%]">
+        <div className="flex items-center gap-[10%] w-[35%]">
+          <img
+            src={dateLogo}
+            alt="date-logo"
+            className="w-5 invert dark:invert-0"
+          />
+          <div className="flex items-center flex-1">
             <p className="text-[14px] text-black dark:text-[rgba(255,255,255,0.6)] w-[60%]">
               Date
             </p>
-            <p className="text-[14px] text-black dark:text-[rgba(255,255,255,1)] w-[40%] underline">
-              21/06/2026
+            <p className="text-[14px] text-black dark:text-[rgba(255,255,255,1)] w-[40%] underline p-1">
+              {note?.createdAt.slice(0, 10)}
             </p>
           </div>
         </div>
         <hr className="border-0 border-t border-t-gray-300 dark:border-t-[rgba(255,255,255,0.1)]" />
-        <div className="flex gap-[10%] w-[35%]">
-          <img src={folderLogo} alt="folder-logo" className="w-[8%] invert dark:invert-0" />
-          <div className="flex w-[82%]">
+        <div className="flex items-center gap-[10%] w-[35%]">
+          <img
+            src={folderLogo}
+            alt="folder-logo"
+            className="w-5 invert dark:invert-0"
+          />
+          <div className="flex items-center flex-1">
             <p className="text-[14px] text-black dark:text-[rgba(255,255,255,0.6)] w-[60%]">
               Folder
             </p>
@@ -256,8 +297,9 @@ export function NoteDetail() {
                 data-menu-trigger
               >
                 {
-                  folderList.filter((folder) => folder.id === note.folderId)[0]
-                    ?.name
+                  folderList.filter(
+                    (folder) => folder.id === updateNoteValue.folderId,
+                  )[0]?.name
                 }
               </button>
               {hasFolderListOpen && (
@@ -273,7 +315,10 @@ export function NoteDetail() {
                       onClick={() => {
                         setHasIntialNote(false);
                         setHasFolderListOpen(false);
-                        setNote((prev) => ({ ...prev, folderId: folder.id }));
+                        setUpdateNoteValue((prev) => ({
+                          ...prev,
+                          folderId: folder.id,
+                        }));
                       }}
                     >
                       {folder.name}
@@ -301,11 +346,12 @@ export function NoteDetail() {
       </section>
 
       <textarea
-        value={note.content}
+        value={updateNoteValue.content}
         onChange={(e) => {
           setHasIntialNote(false);
-          setNote((prev) => ({ ...prev, content: e.target.value }));
+          setUpdateNoteValue((prev) => ({ ...prev, content: e.target.value }));
         }}
+        placeholder="Start writing.."
         rows={30}
         className="overflow-auto [scrollbar-color:#d1d5db_#e5e7eb] dark:[scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]"
       />

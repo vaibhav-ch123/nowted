@@ -2,8 +2,8 @@ import type React from "react";
 import nowtedLogo from "../assets/nowted-logo.svg";
 import searchIcon from "../assets/search-icon.svg";
 import activeSearchIcon from "../assets/active_search_logo.svg";
-import darkModeImage from "../assets/dark-mode.svg";
-import lightModeImage from "../assets/light-mode.svg";
+import darkModeImage from "../assets/dark-mode-logo.svg";
+import lightModeImage from "../assets/light-mode-logo.svg";
 import { useEffect, useState } from "react";
 
 export function Logo({
@@ -26,7 +26,7 @@ export function Logo({
     <div className="flex justify-between items-center px-[6%] py-2">
       <img src={nowtedLogo} alt="nowted-logo" className="w-25.25 h-9.5 invert dark:invert-0" />
       
-      <img src={isDark ? darkModeImage : lightModeImage } className="w-14" onClick={() => { setIsDark(prev => !prev) }} />
+      <img src={isDark ? darkModeImage : lightModeImage } className="w-6 cursor-pointer" onClick={() => { setIsDark(prev => !prev) }} />
 
       <img
         src={toggleSearch ? searchIcon : activeSearchIcon}

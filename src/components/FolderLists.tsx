@@ -9,7 +9,7 @@ import {
   editFolder,
   getFolders,
 } from "../api/folderApi";
-import { NavLink, useLocation, useNavigate } from "react-router";
+import { NavLink, useLocation, useNavigate, useParams } from "react-router";
 import { useFolderListContext } from "../context/FolderListContext";
 import { toast } from "sonner";
 import { useRefreshFileContext } from "../context/FileContext";
@@ -18,6 +18,7 @@ export function FolderLists() {
   const [refreshFolderList, setRefreshFolderList] = useState(0);
   const { folderList, setFolderList } = useFolderListContext();
   const { setRefreshFile } = useRefreshFileContext();
+  const { folderId, noteId } = useParams();
   const [folderName, setFolderName] = useState("");
   const [openCreateFolderInput, setOpenCreateFolderInput] = useState(false);
   const [editFolderId, setEditFolderId] = useState("");
@@ -25,7 +26,7 @@ export function FolderLists() {
   const [err, setErr] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target;
@@ -51,18 +52,30 @@ export function FolderLists() {
 
   useEffect(() => {
     setErr("");
+    let cancelled = false;
     async function loadFolders() {
       try {
         const foldersData = await getFolders();
+        if (cancelled) return;
         setFolderList(foldersData);
-      } catch (e) {
-        setErr("failed to load folder data");
+      } catch (err) {
+        if (!cancelled) {
+          if (err instanceof Error) {
+            console.log(err.message);
+          }
+          setErr("failed to load folder data");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     loadFolders();
+    return () => {
+      cancelled = true;
+    };
   }, [refreshFolderList]);
 
   async function handleCreateFolder() {
@@ -71,20 +84,25 @@ export function FolderLists() {
       toast.success(message);
       setRefreshFolderList((prev) => prev + 1);
     } catch (err) {
-      console.log(err);
+      if (err instanceof Error) {
+        console.log(err.message);
+      }
       toast.error("failed to create folder");
     } finally {
       setFolderName("");
     }
   }
 
-  async function handleEditFolder(folderName: string, folderId: string) {
+  async function handleEditFolder(folderName: string, editFolderId: string) {
     try {
-      const message = await editFolder(folderName, folderId);
+      const message = await editFolder(folderName, editFolderId);
       toast.success(message);
       setRefreshFolderList((prev) => prev + 1);
+      if(folderId === editFolderId)     navigate(`/dashboard/${folderName}/${editFolderId}${noteId ? `/note/${noteId}` : ``}`);     
     } catch (err) {
-      console.log(err);
+      if(err instanceof Error){
+        console.log(err);
+      }
       toast.error("failed to edit folder");
     } finally {
       setFolderName("");
@@ -96,10 +114,12 @@ export function FolderLists() {
       const message = await deleteFolder(folderId);
       toast.success(message);
       setRefreshFolderList((prev) => prev + 1);
-      setRefreshFile((prev) => prev+1);
-      navigate("/dashboard/All Notes/all-notes")
+      setRefreshFile((prev) => prev + 1);
+      navigate("/dashboard/All Notes/all-notes");
     } catch (err) {
-      console.log(err);
+      if(err instanceof Error){
+        console.log(err);
+      }
       toast.error("failed to delete folder");
     }
   }
@@ -115,9 +135,11 @@ export function FolderLists() {
     return <p className="px-[6%] py-2 text-red-400 text-[14px]">{err}</p>;
 
   return (
-    <section className="h-[30%] overflow-auto [scrollbar-color:#d1d5db_#e5e7eb] dark:[scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
+    <section className="h-[30%] flex flex-col">
       <div className="px-[6%] py-2 flex justify-between">
-        <h2 className="text-black dark:text-[rgba(255,255,255,0.6)] text-[14px]">Folders</h2>
+        <h2 className="text-black dark:text-[rgba(255,255,255,0.6)] text-[14px]">
+          Folders
+        </h2>
         <img
           src={addFolderLogo}
           alt="add-folder-logo"
@@ -136,10 +158,15 @@ export function FolderLists() {
           className="bg-white dark:bg-[rgba(255,255,255,0.03)] px-[6%] py-2 flex items-center gap-4"
           data-menu-content
         >
-          <img src={folderOpenLogo} alt="folder-open-logo" className="invert dark:invert-0" />
+          <img
+            src={folderOpenLogo}
+            alt="folder-open-logo"
+            className="invert dark:invert-0"
+          />
           <input
             className="text-black dark:text-[rgba(255,255,255,1)] border border-black dark:border-[rgba(255,255,255,0.4)] outline-none text-[16px] w-[50%]"
             value={folderName}
+            autoFocus
             onChange={(e) => {
               setFolderName(e.target.value);
             }}
@@ -154,7 +181,7 @@ export function FolderLists() {
         </div>
       )}
 
-      <ul>
+      <ul className="flex-1 overflow-auto [scrollbar-color:#d1d5db_#e5e7eb] dark:[scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
         {folderList?.map((folder) => (
           <li key={folder.id}>
             {editFolderId === folder.id ? (
@@ -162,10 +189,15 @@ export function FolderLists() {
                 className="px-[6%] py-2 flex items-center gap-4"
                 data-menu-content
               >
-                <img src={folderOpenLogo} alt="folder-open-logo" className="invert dark:invert-0" />
+                <img
+                  src={folderOpenLogo}
+                  alt="folder-open-logo"
+                  className="invert dark:invert-0"
+                />
                 <input
                   className="text-black dark:text-[rgba(255,255,255,1)] border border-black dark:border-[rgba(255,255,255,0.4)] outline-none text-[16px] w-[50%]"
                   value={folderName}
+                  autoFocus
                   onChange={(e) => {
                     setFolderName(e.target.value);
                   }}
@@ -234,7 +266,10 @@ export function FolderLists() {
                         }}
                       >
                         {" "}
-                        <img src={trashLogo} className="w-3.5 invert dark:invert-0" />{" "}
+                        <img
+                          src={trashLogo}
+                          className="w-3.5 invert dark:invert-0"
+                        />{" "}
                       </button>
                     </div>
                   </>

@@ -9,26 +9,44 @@ export function RecentNote() {
   const [recentFile, setRecentFile] = useState<Note[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const {refreshFile} = useRefreshFileContext();
-
+  const { refreshFile } = useRefreshFileContext();
   useEffect(() => {
     setErr("");
+    let cancelled = false;
     async function loadRecentFile() {
       try {
         const recentFile = await getRecentFile();
+        if (cancelled) return;
         setRecentFile(recentFile);
-      } catch (e) {
-        setErr("failed to load recent file");
+      } catch (err) {
+        if (!cancelled) {
+          if (err instanceof Error) {
+            console.log(err.message);
+          }
+          setErr("failed to load recent file");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     loadRecentFile();
+
+    return () => {
+      cancelled = true;
+    };
   }, [refreshFile]);
 
-  if (loading) return <p className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">loading...</p>;
-  if (err) return <p className="px-[6%] py-2 text-red-400 text-[14px]">{err}</p>;
+  if (loading)
+    return (
+      <p className="px-[6%] py-2 text-[rgba(255,255,255,0.6)] text-[14px]">
+        loading...
+      </p>
+    );
+  if (err)
+    return <p className="px-[6%] py-2 text-red-400 text-[14px]">{err}</p>;
 
   return (
     <section>
@@ -47,8 +65,14 @@ export function RecentNote() {
             >
               {({ isActive }) => (
                 <>
-                  <img src={fileLogo} alt="file-logo" className="invert dark:invert-0" />
-                  <p className={`${isActive ? "dark:text-[rgba(255,255,255,1)]" : "dark:text-[rgba(255,255,255,0.6)]"} text-black truncate text-[16px]`}>
+                  <img
+                    src={fileLogo}
+                    alt="file-logo"
+                    className="invert dark:invert-0"
+                  />
+                  <p
+                    className={`${isActive ? "dark:text-[rgba(255,255,255,1)]" : "dark:text-[rgba(255,255,255,0.6)]"} text-black truncate text-[16px]`}
+                  >
                     {note.title}
                   </p>
                 </>
