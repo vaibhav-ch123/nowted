@@ -4,8 +4,8 @@ import { useNavigate, useParams } from "react-router";
 import { getNote, restoreNote } from "../api/notesApi";
 import type { CreateNote } from "../types/note";
 import { toast } from "sonner";
-import { useRefreshFileContext } from "../context/FileContext";
-import { useRefreshFolderContext } from "../context/FolderContext";
+import { useSetRefreshFileContext } from "../context/FileContext";
+import { useSetRefreshFolderContext } from "../context/FolderContext";
 
 export function RestoreNotePage() {
   const [note, setNote] = useState<CreateNote>({
@@ -18,8 +18,8 @@ export function RestoreNotePage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const { noteId } = useParams();
-  const { setRefreshFile } = useRefreshFileContext();
-  const { setRefreshFolder } = useRefreshFolderContext();
+  const { setRefreshFile } = useSetRefreshFileContext();
+  const { setRefreshFolder } = useSetRefreshFolderContext();
   const navigate = useNavigate();
 
   useEffect(() => {

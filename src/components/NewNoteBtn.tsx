@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { createNote } from "../api/notesApi";
 import type { CreateNote } from "../types/note";
-import { useRefreshFolderContext } from "../context/FolderContext";
+import { useSetRefreshFolderContext } from "../context/FolderContext";
 import { useSearchContext } from "../context/SearchContext";
-import { useRefreshFileContext } from "../context/FileContext";
+import { useSetRefreshFileContext } from "../context/FileContext";
 import { toast } from "sonner";
 
-export function NewNoteBtn({ toggleSearch }: { toggleSearch: boolean }) {
+export const NewNoteBtn = memo( function NewNoteBtn({ toggleSearch }: { toggleSearch: boolean }) {
   const { folderId } = useParams();
-  const { setRefreshFolder } = useRefreshFolderContext();
-  const { setRefreshFile } = useRefreshFileContext();
+  const { setRefreshFolder } = useSetRefreshFolderContext();
+  const { setRefreshFile } = useSetRefreshFileContext();
   const navigate = useNavigate();
   const { searchValue, setSearchValue } = useSearchContext();
   const [folderErr, setFolderErr] = useState("");
@@ -92,3 +92,4 @@ export function NewNoteBtn({ toggleSearch }: { toggleSearch: boolean }) {
     </div>
   );
 }
+)

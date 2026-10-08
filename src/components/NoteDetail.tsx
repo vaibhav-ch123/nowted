@@ -9,8 +9,8 @@ import { useNavigate, useParams } from "react-router";
 import { deleteNote, getNote, updateNote } from "../api/notesApi";
 import type { CreateNote, Note } from "../types/note";
 import { toast } from "sonner";
-import { useRefreshFileContext } from "../context/FileContext";
-import { useRefreshFolderContext } from "../context/FolderContext";
+import { useSetRefreshFileContext } from "../context/FileContext";
+import { useSetRefreshFolderContext } from "../context/FolderContext";
 import { useFolderListContext } from "../context/FolderListContext";
 
 export function NoteDetail() {
@@ -24,8 +24,8 @@ export function NoteDetail() {
     isArchived: false,
   });
   const [note, setNote] = useState<Note | null>(null);
-  const { setRefreshFile } = useRefreshFileContext();
-  const { setRefreshFolder } = useRefreshFolderContext();
+  const { setRefreshFile } = useSetRefreshFileContext();
+  const { setRefreshFolder } = useSetRefreshFolderContext();
   const { folderList } = useFolderListContext();
   const navigate = useNavigate();
   const { noteId, folderId } = useParams();
@@ -172,7 +172,6 @@ export function NoteDetail() {
     <article className="bg-gray-200 dark:bg-[#181818] text-black dark:text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10 overflow-auto [scrollbar-color:#d1d5db_#e5e7eb] dark:[scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
       {loading}
       <section className="flex justify-between items-center">
-        {/* <h1 className="text-[32px] text-[rgba(255,255,255,1)]">Reflection on the month of June</h1> */}
         <input
           type="text"
           className="text-[32px] text-black dark:text-[rgba(255,255,255,1)] w-[90%]"
@@ -327,20 +326,6 @@ export function NoteDetail() {
                 </div>
               )}
             </div>
-            {/* <select
-              className="appearance-none outline-none text-[14px] bg-[#181818] text-[rgba(255,255,255,1)] w-[40%] underline overflow-auto [scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]"
-              value={note.folderId}
-              onChange={(e) => {
-                setHasIntialNote(false);
-                setNote((prev) => ({...prev, folderId: e.target.value}));
-              }}
-            >
-              {folderList.map((folder) => (
-                <option id={folder.id} value={folder.id}>
-                  {folder.name}
-                </option>
-              ))}
-            </select> */}
           </div>
         </div>
       </section>
@@ -355,15 +340,6 @@ export function NoteDetail() {
         rows={30}
         className="overflow-auto [scrollbar-color:#d1d5db_#e5e7eb] dark:[scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]"
       />
-      {/* <section>
-        <p>It's hard to believe that June is already over!</p>
-
-        <p>
-          One of the best things that happened was getting promoted at work...
-        </p>
-
-        <p>I also had a great time on my vacation to Hawaii...</p>
-      </section> */}
     </article>
   );
 }

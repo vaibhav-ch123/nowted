@@ -10,6 +10,7 @@ export function RecentNote() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const { refreshFile } = useRefreshFileContext();
+  
   useEffect(() => {
     setErr("");
     let cancelled = false;
