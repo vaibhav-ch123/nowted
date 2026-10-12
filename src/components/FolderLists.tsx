@@ -1,12 +1,12 @@
 import folderOpenLogo from "../assets/open-folder-logo.svg";
 import addFolderLogo from "../assets/add-folder-logo.svg";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { createFolder, getFolders } from "../api/folderApi";
 import { useFolderListContext } from "../context/FolderListContext";
 import { toast } from "sonner";
 import { FolderCard } from "./FolderCard";
 
-export function FolderLists() {
+export const FolderLists = React.memo(function FolderLists() {
   const [refreshFolderList, setRefreshFolderList] = useState(0);
   const { folderList, setFolderList } = useFolderListContext();
   const [folderName, setFolderName] = useState("");
@@ -14,7 +14,6 @@ export function FolderLists() {
   const [editFolderId, setEditFolderId] = useState("");
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target;
@@ -76,9 +75,7 @@ export function FolderLists() {
         console.log(err.message);
       }
       toast.error("failed to create folder");
-    } finally {
-      setFolderName("");
-    }
+    } 
   }
 
   if (loading)
@@ -152,4 +149,4 @@ export function FolderLists() {
       </ul>
     </section>
   );
-}
+})

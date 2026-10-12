@@ -7,7 +7,7 @@ import { useSearchContext } from "../context/SearchContext";
 
 export function NoteList() {
   const { folderName, folderId } = useParams();
-  const { refreshFolder } = useRefreshFolderContext();
+  const refreshFolder = useRefreshFolderContext();
   const { searchValue } = useSearchContext();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);

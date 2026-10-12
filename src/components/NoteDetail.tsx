@@ -24,8 +24,8 @@ export function NoteDetail() {
     isArchived: false,
   });
   const [note, setNote] = useState<Note | null>(null);
-  const { setRefreshFile } = useSetRefreshFileContext();
-  const { setRefreshFolder } = useSetRefreshFolderContext();
+  const setRefreshFile = useSetRefreshFileContext();
+  const setRefreshFolder = useSetRefreshFolderContext();
   const { folderList } = useFolderListContext();
   const navigate = useNavigate();
   const { noteId, folderId } = useParams();

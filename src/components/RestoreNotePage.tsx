@@ -18,8 +18,8 @@ export function RestoreNotePage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const { noteId } = useParams();
-  const { setRefreshFile } = useSetRefreshFileContext();
-  const { setRefreshFolder } = useSetRefreshFolderContext();
+  const setRefreshFile = useSetRefreshFileContext();
+  const setRefreshFolder = useSetRefreshFolderContext();
   const navigate = useNavigate();
 
   useEffect(() => {

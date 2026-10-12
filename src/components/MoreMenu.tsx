@@ -2,8 +2,9 @@ import favoritesLogo from "../assets/archived-logo.svg";
 import trashLogo from "../assets/bin-logo.svg";
 import archivedLogo from "../assets/archived-logo.svg";
 import { NavLink, useLocation, useNavigate } from "react-router";
+import React from "react";
 
-export function MoreMenu() {
+export const MoreMenu = React.memo(function MoreMenu() {
   const location = useLocation();
   const navigator = useNavigate();
   return (
@@ -105,4 +106,4 @@ export function MoreMenu() {
       </ul>
     </section>
   );
-}
+})

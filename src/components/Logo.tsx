@@ -24,18 +24,30 @@ export function Logo({
 
   return (
     <div className="flex justify-between items-center px-[6%] py-2">
-      <img src={nowtedLogo} alt="nowted-logo" className="w-25.25 h-9.5 invert dark:invert-0" />
-      
-      <img src={isDark ? darkModeImage : lightModeImage } className="w-6 cursor-pointer" onClick={() => { setIsDark(prev => !prev) }} />
-
       <img
-        src={toggleSearch ? searchIcon : activeSearchIcon}
-        alt="search-icon"
-        className="w-5 h-5 cursor-pointer  invert dark:invert-0"
-        onClick={() => {
-          setToggleSearch((prev) => !prev);
-        }}
+        src={nowtedLogo}
+        alt="nowted-logo"
+        className="w-25.25 h-9.5 invert dark:invert-0"
       />
+
+      <div className="flex gap-4">
+        <img
+          src={isDark ? darkModeImage : lightModeImage}
+          className="w-6 cursor-pointer"
+          onClick={() => {
+            setIsDark((prev) => !prev);
+          }}
+        />
+
+        <img
+          src={toggleSearch ? searchIcon : activeSearchIcon}
+          alt="search-icon"
+          className="w-5 h-5 cursor-pointer  invert dark:invert-0"
+          onClick={() => {
+            setToggleSearch((prev) => !prev);
+          }}
+        />
+      </div>
     </div>
   );
 }

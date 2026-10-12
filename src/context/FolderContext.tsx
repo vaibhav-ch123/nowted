@@ -1,18 +1,13 @@
 import {
   createContext,
   useContext,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
 
-type RefreshFolderContextType = {
-  refreshFolder: number;
-};
+type RefreshFolderContextType = number;
 
-type SetRefreshFolderContextType = {
-  setRefreshFolder: React.Dispatch<React.SetStateAction<number>>;
-};
+type SetRefreshFolderContextType = React.Dispatch<React.SetStateAction<number>>;
 
 const RefreshFolderContext = createContext<
   RefreshFolderContextType | undefined
@@ -24,18 +19,10 @@ const SetRefreshFolderContext = createContext<
 
 export function RefreshFolderProvider({ children }: { children: ReactNode }) {
   const [refreshFolder, setRefreshFolder] = useState<number>(0);
-  const refreshFolderValue = useMemo(
-    () => ({ refreshFolder }),
-    [refreshFolder],
-  );
-  const setRefreshFolderValue = useMemo(
-    () => ({ setRefreshFolder }),
-    [setRefreshFolder],
-  );
 
   return (
-    <RefreshFolderContext value={refreshFolderValue}>
-      <SetRefreshFolderContext value={setRefreshFolderValue}>
+    <RefreshFolderContext value={refreshFolder}>
+      <SetRefreshFolderContext value={setRefreshFolder}>
         {children}
       </SetRefreshFolderContext>
     </RefreshFolderContext>
@@ -45,7 +32,7 @@ export function RefreshFolderProvider({ children }: { children: ReactNode }) {
 export function useRefreshFolderContext() {
   const context = useContext(RefreshFolderContext);
 
-  if (!context) {
+  if (context === undefined) {
     throw new Error(
       "useRefreshFolderContext must be used inside RefreshFolderProvider",
     );

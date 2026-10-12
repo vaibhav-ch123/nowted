@@ -1,16 +1,15 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import fileLogo from "../assets/file-logo.svg";
 import { getRecentFile } from "../api/notesApi";
 import type { Note } from "../types/note";
 import { NavLink } from "react-router";
 import { useRefreshFileContext } from "../context/FileContext";
 
-export function RecentNote() {
+export const RecentNote = React.memo(function RecentNote() {
   const [recentFile, setRecentFile] = useState<Note[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const { refreshFile } = useRefreshFileContext();
-  
+  const refreshFile = useRefreshFileContext();
   useEffect(() => {
     setErr("");
     let cancelled = false;
@@ -81,25 +80,7 @@ export function RecentNote() {
             </NavLink>
           </li>
         ))}
-        {/* <li className="px-[6%] py-2 bg-[rgba(49,46,181,1)] flex items-center gap-4">
-          <img src={fileLogo} alt="file-logo" />
-          <a href="#" className="text-[rgba(255,255,255,1)] text-[16px]">
-            Reflection on the Month of June
-          </a>
-        </li>
-        <li className="px-[6%] py-2 flex items-center gap-4">
-          <img src={fileLogo} alt="file-logo" />
-          <a href="#" className="text-[rgba(255,255,255,0.6)] text-[16px]">
-            Project Proposal
-          </a>
-        </li>
-        <li className="px-[6%] py-2 flex items-center gap-4">
-          <img src={fileLogo} alt="file-logo" />
-          <a href="#" className="text-[rgba(255,255,255,0.6)] text-[16px]">
-            Travel itinerary
-          </a>
-        </li> */}
       </ul>
     </section>
   );
-}
+});

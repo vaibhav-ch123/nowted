@@ -9,8 +9,8 @@ import { toast } from "sonner";
 
 export const NewNoteBtn = memo( function NewNoteBtn({ toggleSearch }: { toggleSearch: boolean }) {
   const { folderId } = useParams();
-  const { setRefreshFolder } = useSetRefreshFolderContext();
-  const { setRefreshFile } = useSetRefreshFileContext();
+  const setRefreshFolder = useSetRefreshFolderContext();
+  const setRefreshFile = useSetRefreshFileContext();
   const navigate = useNavigate();
   const { searchValue, setSearchValue } = useSearchContext();
   const [folderErr, setFolderErr] = useState("");

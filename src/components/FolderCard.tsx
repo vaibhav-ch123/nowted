@@ -4,26 +4,25 @@ import trashLogo from "../assets/bin-logo.svg";
 import { deleteFolder, editFolder } from "../api/folderApi";
 import { useSetRefreshFileContext } from "../context/FileContext";
 import { NavLink, useLocation, useNavigate, useParams } from "react-router";
-import type React from "react";
+import React from "react";
 import type { Folder } from "../types/folder";
 import { toast } from "sonner";
 import { useState } from "react";
 
-export function FolderCard({
+export const FolderCard = React.memo(function FolderCard({
   setOpenCreateFolderInput,
   setEditFolderId,
   editFolderId,
   setRefreshFolderList,
-  folder
+  folder,
 }: {
-  setOpenCreateFolderInput: React.Dispatch<React.SetStateAction<boolean>>,
-  setEditFolderId: React.Dispatch<React.SetStateAction<string>>,
-  editFolderId: string,
-  setRefreshFolderList: React.Dispatch<React.SetStateAction<number>>,
-  folder: Folder
+  setOpenCreateFolderInput: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditFolderId: React.Dispatch<React.SetStateAction<string>>;
+  editFolderId: string;
+  setRefreshFolderList: React.Dispatch<React.SetStateAction<number>>;
+  folder: Folder;
 }) {
-
-  const { setRefreshFile } = useSetRefreshFileContext();
+  const setRefreshFile = useSetRefreshFileContext();
   const [folderName, setFolderName] = useState("");
   const { folderId, noteId } = useParams();
   const location = useLocation();
@@ -154,4 +153,4 @@ export function FolderCard({
       )}
     </li>
   );
-}
+});
