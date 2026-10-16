@@ -6,6 +6,8 @@ import type { CreateNote } from "../types/note";
 import { toast } from "sonner";
 import { useSetRefreshFileContext } from "../context/FileContext";
 import { useSetRefreshFolderContext } from "../context/FolderContext";
+import { restoreFolder } from "../api/folderApi";
+import { useFolderListContext, useSetRefreshFolderListContext } from "../context/FolderListContext";
 
 export function RestoreNotePage() {
   const [note, setNote] = useState<CreateNote>({
@@ -20,6 +22,8 @@ export function RestoreNotePage() {
   const { noteId } = useParams();
   const setRefreshFile = useSetRefreshFileContext();
   const setRefreshFolder = useSetRefreshFolderContext();
+  const { folderList } = useFolderListContext();
+  const setRefreshFolderList = useSetRefreshFolderListContext();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,10 +60,33 @@ export function RestoreNotePage() {
     };
   }, [noteId]);
 
+  async function handleRestoreFolder(folderId: string) {
+
+    let hasFolderDeleted = true; 
+
+    folderList.forEach((folder) => {
+      if(folder.id === folderId)    hasFolderDeleted = false;
+    });
+
+    if(!hasFolderDeleted)     return;      
+
+    try {
+      const message = await restoreFolder(folderId);
+      toast.success(message);
+      setRefreshFolderList((prev) => prev+1);
+    } catch (err) {
+      if(err instanceof Error){
+        console.log(err.message);
+      }
+      toast.error("failed to restore folder");
+    }
+  }
+
   async function handleRestoreNote(noteId: string) {
     try {
       const message = await restoreNote(noteId);
       toast.success(message);
+      handleRestoreFolder(note.folderId);
       setRefreshFile((prev) => prev + 1);
       setRefreshFolder((prev) => prev + 1);
       navigate("../");

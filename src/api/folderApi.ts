@@ -41,3 +41,13 @@ export async function deleteFolder(folderId: string): Promise<string> {
 
   throw new Error(res.data.error);
 }
+
+export async function restoreFolder(folderId: string): Promise<string> {
+  const res = await api.post<string | ErrorType>(`/folders/${folderId}/restore`);
+
+  if(typeof res.data === "string"){
+    return res.data;
+  }
+
+  throw new Error(res.data.error);
+}

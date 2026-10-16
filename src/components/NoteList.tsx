@@ -16,7 +16,7 @@ export function NoteList() {
   const [page, setPage] = useState(1);
   const divScrollRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
-  const limit = 10;
+  const limit = Math.ceil(window.innerHeight / 114);
 
   useEffect(() => {
     loadingRef.current = loading;
@@ -29,14 +29,13 @@ export function NoteList() {
   }, [folderId, refreshFolder, searchValue]);
 
   useEffect(() => {
-    if (!hasMore)  return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !loadingRef.current) {
-          setPage((prev) => prev + 1);
-        }
-      },
-    );
+    if (!hasMore) return;
+    const observer = new IntersectionObserver(([entry]) => {
+
+      if (entry.isIntersecting && !loadingRef.current) {
+        setPage((prev) => prev + 1);
+      }
+    });
 
     const element = divScrollRef.current;
 
@@ -50,6 +49,7 @@ export function NoteList() {
   }, [hasMore]);
 
   useEffect(() => {
+
     let cancelled = false;
 
     async function loadNotes() {

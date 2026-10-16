@@ -2,12 +2,14 @@ import folderOpenLogo from "../assets/open-folder-logo.svg";
 import addFolderLogo from "../assets/add-folder-logo.svg";
 import React, { useState, useEffect } from "react";
 import { createFolder, getFolders } from "../api/folderApi";
-import { useFolderListContext } from "../context/FolderListContext";
+import { useFolderListContext, useRefreshFolderListContext, useSetRefreshFolderListContext } from "../context/FolderListContext";
 import { toast } from "sonner";
 import { FolderCard } from "./FolderCard";
 
 export const FolderLists = React.memo(function FolderLists() {
-  const [refreshFolderList, setRefreshFolderList] = useState(0);
+  
+  const refreshFolderList = useRefreshFolderListContext();
+  const setRefreshFolderList = useSetRefreshFolderListContext();
   const { folderList, setFolderList } = useFolderListContext();
   const [folderName, setFolderName] = useState("");
   const [openCreateFolderInput, setOpenCreateFolderInput] = useState(false);
