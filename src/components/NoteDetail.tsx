@@ -7,11 +7,11 @@ import binLogo from "../assets/bin-logo.svg";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { deleteNote, getNote, updateNote } from "../api/notesApi";
-import type { CreateNote, Note } from "../types/note";
+import type { CreateNote} from "../types/note";
 import { toast } from "sonner";
-import { useSetRefreshFileContext } from "../context/FileContext";
-import { useSetRefreshFolderContext } from "../context/FolderContext";
-import { useFolderListContext } from "../context/FolderListContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getFolders } from "../api/folderApi";
+import { useSearchContext } from "../context/SearchContext";
 
 export function NoteDetail() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,15 +23,11 @@ export function NoteDetail() {
     isFavorite: false,
     isArchived: false,
   });
-  const [note, setNote] = useState<Note | null>(null);
-  const setRefreshFile = useSetRefreshFileContext();
-  const setRefreshFolder = useSetRefreshFolderContext();
-  const { folderList } = useFolderListContext();
   const navigate = useNavigate();
   const { noteId, folderId } = useParams();
   const [hasIntialNote, setHasIntialNote] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+  const queryClient = useQueryClient();
+  const { searchValue } = useSearchContext();
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -56,121 +52,136 @@ export function NoteDetail() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    setHasIntialNote(true);
-    setErr("");
-    async function loadNote() {
-      if (!noteId) return;
-      try {
-        const noteData = await getNote(noteId);
-        if (cancelled) return;
-        setNote(noteData);
-        setUpdateNoteValue({
-          folderId: noteData.folderId ? noteData.folderId : "",
-          title: noteData.title,
-          content: noteData.content ? noteData.content : "",
-          isFavorite: noteData.isFavorite,
-          isArchived: noteData.isArchived,
-        });
-      } catch (err) {
-        if (!cancelled) {
-          if (err instanceof Error) {
-            console.log(err.message);
-          }
-          setErr("failed to load note!");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadNote();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [noteId]);
-
-  useEffect(() => {
     if (hasIntialNote) return;
 
     const timer = setTimeout(async () => {
-      try {
-        const message = await updateNote(updateNoteValue, noteId ? noteId : "");
-        setNote((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            folderId: updateNoteValue.folderId,
-            title: updateNoteValue.title,
-            content: updateNoteValue.content,
-            isArchived: updateNoteValue.isArchived,
-            isFavorite: updateNoteValue.isFavorite,
-          };
-        });
-        setRefreshFile((prev) => prev + 1);
-        setRefreshFolder((prev) => prev + 1);
-        toast.success(message);
-        if (
-          folderId !== "favorite" &&
-          folderId !== "archived" &&
-          folderId !== "all-notes" &&
-          updateNoteValue.folderId !== folderId
-        )
-          navigate("../");
-
-        if (
-          (updateNoteValue.isArchived && folderId !== "archived") ||
-          (!updateNoteValue.isArchived && folderId === "archived") ||
-          (!updateNoteValue.isFavorite && folderId === "favorite")
-        )
-          navigate("../");
-      } catch (err) {
-        if (err instanceof Error) {
-          console.log(err.message);
-        }
-        toast.error("failed to update file");
-      }
-    }, 1500);
+      if (!note) return;
+      updateNoteMutation.mutate(note.id);
+    }, 1000);
 
     return () => {
       clearTimeout(timer);
     };
   }, [updateNoteValue]);
 
-  async function handleDeleteNote(noteId: string) {
-    try {
-      const message = await deleteNote(noteId);
+  const updateNoteMutation = useMutation({
+    mutationFn: (noteId: string) => updateNote(updateNoteValue, noteId),
+    onSuccess: (message, noteId) => {
       toast.success(message);
-      setRefreshFile((prev) => prev + 1);
-      setRefreshFolder((prev) => prev + 1);
-      navigate(`../`);
-    } catch (err) {
+      queryClient.invalidateQueries({
+        queryKey: ["recentNotes"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["folderNotes", folderId, searchValue],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["notes", noteId],
+      });
+      if (
+        folderId !== "favorite" &&
+        folderId !== "archived" &&
+        folderId !== "all-notes" &&
+        updateNoteValue.folderId !== folderId
+      )
+        navigate("../");
+
+      if (
+        (updateNoteValue.isArchived && folderId !== "archived") ||
+        (!updateNoteValue.isArchived && folderId === "archived") ||
+        (!updateNoteValue.isFavorite && folderId === "favorite")
+      )
+        navigate("../");
+    },
+    onError: (err) => {
+      if (err instanceof Error) {
+        console.log(err.message);
+      }
+      toast.error("failed to update file");
+      if (!note) return;
+      setHasIntialNote(true);
+      setUpdateNoteValue({
+        folderId: note.folderId,
+        title: note.title,
+        content: note.content ?? "",
+        isFavorite: note.isFavorite,
+        isArchived: note.isArchived,
+      });
+    },
+  });
+
+  const {
+    data: note,
+    isLoading: noteLoading,
+    error: noteErr,
+  } = useQuery({
+    queryKey: ["notes", noteId],
+    queryFn: async ({ signal }) => {
+      const noteData = await getNote(noteId!, signal);
+      setUpdateNoteValue({
+        folderId: noteData.folderId ? noteData.folderId : "",
+        title: noteData.title,
+        content: noteData.content ? noteData.content : "",
+        isFavorite: noteData.isFavorite,
+        isArchived: noteData.isArchived,
+      });
+      setHasIntialNote(true);
+      return noteData;
+    },
+    enabled: !!noteId,
+  });
+
+  const {
+    data: folderList,
+    isLoading: folderLoading,
+    error: folderErr,
+  } = useQuery({
+    queryKey: ["folders"],
+    queryFn: ({ signal }) => getFolders(signal),
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: (noteId: string) => deleteNote(noteId),
+    onSuccess: (message) => {
+      toast.success(message);
+      queryClient.invalidateQueries({
+        queryKey: ["recentNotes"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["folderNotes", folderId, searchValue],
+      });
+      navigate("../");
+    },
+    onError: (err) => {
       if (err instanceof Error) {
         console.log(err.message);
       }
       toast.error("failed to delete note");
-    }
-  }
+    },
+  });
 
-  if (loading)
+  if (noteLoading || folderLoading)
     return (
       <p className="bg-gray-200 dark:bg-[#181818] text-black dark:text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10">
         Loading..
       </p>
     );
-  if (err)
+
+  if (noteErr)
     return (
       <p className="bg-gray-200 dark:bg-[#181818] text-red-400 flex flex-col flex-55 gap-6 px-8 py-10">
-        {err}
+        {noteErr?.message}
+      </p>
+    );
+
+  if (folderErr)
+    return (
+      <p className="bg-gray-200 dark:bg-[#181818] text-red-400 flex flex-col flex-55 gap-6 px-8 py-10">
+        {folderErr?.message}
       </p>
     );
 
   return (
     <article className="bg-gray-200 dark:bg-[#181818] text-black dark:text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10 overflow-auto [scrollbar-color:#d1d5db_#e5e7eb] dark:[scrollbar-color:rgba(255,255,255,0.4)_rgba(24,24,24,1)]">
-      {loading}
       <section className="flex justify-between items-center">
         <input
           type="text"
@@ -244,7 +255,7 @@ export function NoteDetail() {
                   className="flex gap-4 px-4 py-2 hover:bg-gray-400 dark:hover:bg-[rgba(255,255,255,0.03)]"
                   onClick={() => {
                     if (!noteId) return;
-                    handleDeleteNote(noteId);
+                    deleteNoteMutation.mutate(noteId);
                   }}
                 >
                   <img
@@ -296,7 +307,7 @@ export function NoteDetail() {
                 data-menu-trigger
               >
                 {
-                  folderList.filter(
+                  folderList?.filter(
                     (folder) => folder.id === updateNoteValue.folderId,
                   )[0]?.name
                 }
@@ -307,7 +318,7 @@ export function NoteDetail() {
                   data-menu-content
                 >
                   {" "}
-                  {folderList.map((folder) => (
+                  {folderList?.map((folder) => (
                     <button
                       key={folder.id}
                       className="p-2 w-full text-left cursor-pointer hover:bg-gray-400 dark:hover:bg-[rgba(255,255,255,0.03)]"

@@ -1,114 +1,105 @@
-import { useEffect, useState } from "react";
 import restoreFileImg from "../assets/restore-file.svg";
 import { useNavigate, useParams } from "react-router";
 import { getNote, restoreNote } from "../api/notesApi";
-import type { CreateNote } from "../types/note";
 import { toast } from "sonner";
-import { useSetRefreshFileContext } from "../context/FileContext";
-import { useSetRefreshFolderContext } from "../context/FolderContext";
-import { restoreFolder } from "../api/folderApi";
-import { useFolderListContext, useSetRefreshFolderListContext } from "../context/FolderListContext";
+import { getFolders, restoreFolder } from "../api/folderApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchContext } from "../context/SearchContext";
 
 export function RestoreNotePage() {
-  const [note, setNote] = useState<CreateNote>({
-    folderId: "",
-    title: "",
-    content: "",
-    isFavorite: false,
-    isArchived: false,
-  });
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+ 
   const { noteId } = useParams();
-  const setRefreshFile = useSetRefreshFileContext();
-  const setRefreshFolder = useSetRefreshFolderContext();
-  const { folderList } = useFolderListContext();
-  const setRefreshFolderList = useSetRefreshFolderListContext();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { searchValue } = useSearchContext();
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadNote() {
-      if (!noteId) return;
+  const {
+    data: note,
+    isLoading: noteLoading,
+    error: noteErr,
+  } = useQuery({
+    queryKey: ["notes", noteId],
+    queryFn: ({ signal }) => getNote(noteId!, signal),
+    enabled: !!noteId,
+  });
 
-      try {
-        const noteData = await getNote(noteId);
+  const {
+    data: folderList,
+    isLoading: folderLoading,
+    error: folderErr,
+  } = useQuery({
+    queryKey: ["folders"],
+    queryFn: ({ signal }) => getFolders(signal),
+  });
 
-        if (cancelled) return;
-        setNote({
-          folderId: noteData.folderId ? noteData.folderId : "",
-          title: noteData.title,
-          content: noteData.content ? noteData.content : "",
-          isFavorite: noteData.isFavorite,
-          isArchived: noteData.isArchived,
-        });
-      } catch (e) {
-        if (!cancelled) {
-          setErr("failed to load note!");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
+  async function handleRestoreFolderAndNote(folderId: string, noteId: string) {
+    let hasFolderDeleted = true;
 
-    loadNote();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [noteId]);
-
-  async function handleRestoreFolder(folderId: string) {
-
-    let hasFolderDeleted = true; 
-
-    folderList.forEach((folder) => {
-      if(folder.id === folderId)    hasFolderDeleted = false;
+    folderList?.forEach((folder) => {
+      if (folder.id === folderId) hasFolderDeleted = false;
     });
 
-    if(!hasFolderDeleted)     return;      
+    if (hasFolderDeleted) {
+      restoreFolderMutation.mutate(folderId);
+    }
 
-    try {
-      const message = await restoreFolder(folderId);
+    restoreNoteMutation.mutate(noteId);
+  }
+
+  const restoreFolderMutation = useMutation({
+    mutationFn: (folderId: string) => restoreFolder(folderId),
+    onSuccess: (message) => {
       toast.success(message);
-      setRefreshFolderList((prev) => prev+1);
-    } catch (err) {
-      if(err instanceof Error){
+      queryClient.invalidateQueries({
+        queryKey: ["folders"],
+      });
+    },
+    onError: (err) => {
+      if (err instanceof Error) {
         console.log(err.message);
       }
       toast.error("failed to restore folder");
-    }
-  }
+    },
+  });
 
-  async function handleRestoreNote(noteId: string) {
-    try {
-      const message = await restoreNote(noteId);
+  const restoreNoteMutation = useMutation({
+    mutationFn: (noteId: string) => restoreNote(noteId),
+    onSuccess: (message) => {
       toast.success(message);
-      handleRestoreFolder(note.folderId);
-      setRefreshFile((prev) => prev + 1);
-      setRefreshFolder((prev) => prev + 1);
+      queryClient.invalidateQueries({
+        queryKey: ["recentNotes"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["folderNotes", "trash", searchValue],
+      });
       navigate("../");
-    } catch (err) {
-      if (err instanceof Error) {
+    },
+    onError: (err) => {
+      if(err instanceof Error){
         console.log(err.message);
       }
       toast.error("failed to restore note");
     }
-  }
+  });
 
-  if (loading)
+  if (noteLoading || folderLoading)
     return (
       <p className="bg-gray-200 dark:bg-[#181818] text-black dark:text-[#FFFFFF] flex flex-col flex-55 gap-6 px-8 py-10">
         Loading..
       </p>
     );
 
-  if (err)
+  if (noteErr)
     return (
       <p className="bg-gray-200 dark:bg-[#181818] text-red-400 flex flex-col flex-55 gap-6 px-8 py-10">
-        {err}
+        {noteErr.message}
+      </p>
+    );
+
+  if (folderErr)
+    return (
+      <p className="bg-gray-200 dark:bg-[#181818] text-red-400 flex flex-col flex-55 gap-6 px-8 py-10">
+        {folderErr.message}
       </p>
     );
 
@@ -120,7 +111,7 @@ export function RestoreNotePage() {
         className="h-20 w-20 invert dark:invert-0"
       />
       <h1 className="text-black dark:text-[#FFFFFF] text-[28px]">
-        Restore "{note.title}"
+        Restore "{note?.title}"
       </h1>
       <p className="text-black dark:text-[rgba(255,255,255,0.6)] text-[16px]">
         Don't want to lose this note? It's not to late! Just click the 'Restore'
@@ -129,8 +120,8 @@ export function RestoreNotePage() {
       <button
         className="bg-[rgba(49,46,181,1)] text-black dark:text-[#FFFFFF] text-[16px] rounded-md px-6 py-2"
         onClick={() => {
-          if (!noteId) return;
-          handleRestoreNote(noteId);
+          if (!note) return;
+          handleRestoreFolderAndNote(note.folderId, note.id);
         }}
       >
         Restore

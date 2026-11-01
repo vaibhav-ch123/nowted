@@ -2,66 +2,90 @@ import folderOpenLogo from "../assets/open-folder-logo.svg";
 import folderLogo from "../assets/folder-logo.svg";
 import trashLogo from "../assets/bin-logo.svg";
 import { deleteFolder, editFolder } from "../api/folderApi";
-import { useSetRefreshFileContext } from "../context/FileContext";
 import { NavLink, useLocation, useNavigate, useParams } from "react-router";
 import React from "react";
 import type { Folder } from "../types/folder";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const FolderCard = React.memo(function FolderCard({
   setOpenCreateFolderInput,
   setEditFolderId,
   editFolderId,
-  setRefreshFolderList,
   folder,
 }: {
   setOpenCreateFolderInput: React.Dispatch<React.SetStateAction<boolean>>;
   setEditFolderId: React.Dispatch<React.SetStateAction<string>>;
   editFolderId: string;
-  setRefreshFolderList: React.Dispatch<React.SetStateAction<number>>;
   folder: Folder;
 }) {
-  const setRefreshFile = useSetRefreshFileContext();
+  
   const [folderName, setFolderName] = useState("");
   const { folderId, noteId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  async function handleEditFolder(folderName: string, editFolderId: string) {
-    try {
-      const message = await editFolder(folderName, editFolderId);
+  const editFolderMutation = useMutation({
+    mutationFn: ({
+      folderName,
+      editFolderId,
+    }: {
+      folderName: string;
+      editFolderId: string;
+    }) => editFolder(folderName, editFolderId),
+
+    onSuccess: (message, variables) => {
       toast.success(message);
-      setRefreshFolderList((prev) => prev + 1);
-      if (folderId === editFolderId)
+
+      queryClient.invalidateQueries({
+        queryKey: ["folders"],
+      });
+
+      if (folderId === variables.editFolderId) {
         navigate(
-          `/dashboard/${folderName}/${editFolderId}${noteId ? `/note/${noteId}` : ``}`,
+          `/dashboard/${variables.folderName}/${variables.editFolderId}${
+            noteId ? `/note/${noteId}` : ""
+          }`,
         );
-    } catch (err) {
+      }
+    },
+
+    onError: (err) => {
       if (err instanceof Error) {
         console.log(err);
       }
-      toast.error("failed to edit folder");
-    } finally {
-      setFolderName("");
-    }
-  }
 
-  async function handleDeleteFolder(deleteFolderId: string) {
-    try {
-      const message = await deleteFolder(deleteFolderId);
+      toast.error("failed to edit folder");
+    },
+
+    onSettled: () => {
+      setFolderName("");
+    },
+  });
+
+  const deleteFolderMutation = useMutation({
+    mutationFn: (deleteFolderId: string) => deleteFolder(deleteFolderId),
+    onSuccess: (message, deleteFolderId) => {
       toast.success(message);
-      setRefreshFolderList((prev) => prev + 1);
-      setRefreshFile((prev) => prev + 1);
-      if (folderId === deleteFolderId)
+      queryClient.invalidateQueries({
+        queryKey: ["recentNotes"]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ["folders"],
+      });
+      if(folderId === deleteFolderId){
         navigate("/dashboard/All Notes/all-notes");
-    } catch (err) {
+      }
+    },
+    onError: (err) => {
       if (err instanceof Error) {
         console.log(err);
       }
       toast.error("failed to delete folder");
     }
-  }
+  })
 
   return (
     <li key={folder.id}>
@@ -84,7 +108,7 @@ export const FolderCard = React.memo(function FolderCard({
                 if (folderName.trim() === "" || folderName === folder.name)
                   return;
                 setEditFolderId("");
-                handleEditFolder(folderName, folder.id);
+                editFolderMutation.mutate({folderName, editFolderId: folder.id});
               }
             }}
           />
@@ -137,7 +161,7 @@ export const FolderCard = React.memo(function FolderCard({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    handleDeleteFolder(folder.id);
+                    deleteFolderMutation.mutate(folder.id);
                   }}
                 >
                   {" "}

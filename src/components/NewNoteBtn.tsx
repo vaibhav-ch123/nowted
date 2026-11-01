@@ -2,20 +2,23 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { createNote } from "../api/notesApi";
 import type { CreateNote } from "../types/note";
-import { useSetRefreshFolderContext } from "../context/FolderContext";
 import { useSearchContext } from "../context/SearchContext";
-import { useSetRefreshFileContext } from "../context/FileContext";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export const NewNoteBtn = memo( function NewNoteBtn({ toggleSearch }: { toggleSearch: boolean }) {
+export const NewNoteBtn = memo(function NewNoteBtn({
+  toggleSearch,
+}: {
+  toggleSearch: boolean;
+}) {
   const { folderId } = useParams();
-  const setRefreshFolder = useSetRefreshFolderContext();
-  const setRefreshFile = useSetRefreshFileContext();
   const navigate = useNavigate();
   const { searchValue, setSearchValue } = useSearchContext();
   const [folderErr, setFolderErr] = useState("");
   const [searchInputValue, setSearchInputValue] = useState(searchValue);
   let warningTimer = useRef(0);
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchValue(searchInputValue);
@@ -26,8 +29,8 @@ export const NewNoteBtn = memo( function NewNoteBtn({ toggleSearch }: { toggleSe
     };
   }, [searchInputValue]);
 
-  async function createNoteData(folderId: string) {
-    try {
+  const createNoteMutation = useMutation({
+    mutationFn: (folderId: string) => {
       const noteData: CreateNote = {
         folderId,
         title: "Untitled Note",
@@ -36,19 +39,30 @@ export const NewNoteBtn = memo( function NewNoteBtn({ toggleSearch }: { toggleSe
         isArchived: false,
       };
 
-      const noteId = await createNote(noteData);
+      return createNote(noteData);
+    },
+
+    onSuccess: (noteId) => {
       toast.success("note created successfully");
 
       navigate(`note/${noteId}`);
-      setRefreshFile((prev) => prev + 1);
-      setRefreshFolder((prev) => prev + 1);
-    } catch (err) {
+
+      queryClient.invalidateQueries({
+        queryKey: ["recentNotes"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["folderNotes", folderId, searchValue],
+      });
+    },
+
+    onError: (err) => {
       if (err instanceof Error) {
         console.log(err.message);
       }
       toast.error("failed to create note");
-    }
-  }
+    },
+
+  });
 
   function handleNewNote(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -65,7 +79,7 @@ export const NewNoteBtn = memo( function NewNoteBtn({ toggleSearch }: { toggleSe
       return;
     }
 
-    createNoteData(folderId);
+    createNoteMutation.mutate(folderId);
   }
 
   return (
@@ -74,8 +88,9 @@ export const NewNoteBtn = memo( function NewNoteBtn({ toggleSearch }: { toggleSe
         <button
           className="w-full rounded-[3px] bg-white text-black dark:bg-[rgba(255,255,255,0.05)] dark:text-[#FFFFFF] text-[16px] py-2 cursor-pointer"
           onClick={handleNewNote}
+          disabled={createNoteMutation.isPending}
         >
-          + New Note
+          {createNoteMutation.isPending ? "Creating..." : "+ New Note"}
         </button>
       ) : (
         <input
@@ -91,5 +106,4 @@ export const NewNoteBtn = memo( function NewNoteBtn({ toggleSearch }: { toggleSe
       {folderErr && <p className="text-red-400">{folderErr}</p>}
     </div>
   );
-}
-)
+});

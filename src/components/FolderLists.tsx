@@ -2,20 +2,17 @@ import folderOpenLogo from "../assets/open-folder-logo.svg";
 import addFolderLogo from "../assets/add-folder-logo.svg";
 import React, { useState, useEffect } from "react";
 import { createFolder, getFolders } from "../api/folderApi";
-import { useFolderListContext, useRefreshFolderListContext, useSetRefreshFolderListContext } from "../context/FolderListContext";
 import { toast } from "sonner";
 import { FolderCard } from "./FolderCard";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const FolderLists = React.memo(function FolderLists() {
-  
-  const refreshFolderList = useRefreshFolderListContext();
-  const setRefreshFolderList = useSetRefreshFolderListContext();
-  const { folderList, setFolderList } = useFolderListContext();
+
   const [folderName, setFolderName] = useState("");
   const [openCreateFolderInput, setOpenCreateFolderInput] = useState(false);
   const [editFolderId, setEditFolderId] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target;
@@ -39,46 +36,35 @@ export const FolderLists = React.memo(function FolderLists() {
     };
   }, []);
 
-  useEffect(() => {
-    setErr("");
-    let cancelled = false;
-    async function loadFolders() {
-      try {
-        const foldersData = await getFolders();
-        if (cancelled) return;
-        setFolderList(foldersData);
-      } catch (err) {
-        if (!cancelled) {
-          if (err instanceof Error) {
-            console.log(err.message);
-          }
-          setErr("failed to load folder data");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
+  const {
+    data: folderList,
+    isLoading: loading,
+    error: err,
+  } = useQuery({
+    queryKey: ["folders"],
+    queryFn: ({ signal }) => getFolders(signal),
+  });
 
-    loadFolders();
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshFolderList]);
+  const createFolderMutation = useMutation({
+    mutationFn: () => createFolder(folderName.trim()),
 
-  async function handleCreateFolder() {
-    try {
-      const message = await createFolder(folderName);
+    onSuccess: (message) => {
       toast.success(message);
-      setRefreshFolderList((prev) => prev + 1);
-    } catch (err) {
+
+      queryClient.invalidateQueries({
+        queryKey: ["folders"],
+      });
+
+    },
+
+    onError: (err) => {
       if (err instanceof Error) {
         console.log(err.message);
       }
+
       toast.error("failed to create folder");
-    } 
-  }
+    },
+  });
 
   if (loading)
     return (
@@ -88,7 +74,9 @@ export const FolderLists = React.memo(function FolderLists() {
     );
 
   if (err)
-    return <p className="px-[6%] py-2 text-red-400 text-[14px]">{err}</p>;
+    return (
+      <p className="px-[6%] py-2 text-red-400 text-[14px]">{err.message}</p>
+    );
 
   return (
     <section className="h-[30%] flex flex-col">
@@ -130,7 +118,7 @@ export const FolderLists = React.memo(function FolderLists() {
               if (e.key === "Enter") {
                 if (folderName.trim() === "") return;
                 setOpenCreateFolderInput(false);
-                handleCreateFolder();
+                createFolderMutation.mutate();
               }
             }}
           />
@@ -144,11 +132,10 @@ export const FolderLists = React.memo(function FolderLists() {
             setOpenCreateFolderInput={setOpenCreateFolderInput}
             setEditFolderId={setEditFolderId}
             editFolderId={editFolderId}
-            setRefreshFolderList={setRefreshFolderList}
             folder={folder}
           />
         ))}
       </ul>
     </section>
   );
-})
+});

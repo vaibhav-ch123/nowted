@@ -1,43 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import fileLogo from "../assets/file-logo.svg";
 import { getRecentFile } from "../api/notesApi";
-import type { Note } from "../types/note";
 import { NavLink } from "react-router";
-import { useRefreshFileContext } from "../context/FileContext";
+import { useQuery } from "@tanstack/react-query";
 
 export const RecentNote = React.memo(function RecentNote() {
-  const [recentFile, setRecentFile] = useState<Note[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
-  const refreshFile = useRefreshFileContext();
-  useEffect(() => {
-    setErr("");
-    let cancelled = false;
-    async function loadRecentFile() {
-      try {
-        const recentFile = await getRecentFile();
-        if (cancelled) return;
-        setRecentFile(recentFile);
-      } catch (err) {
-        if (!cancelled) {
-          if (err instanceof Error) {
-            console.log(err.message);
-          }
-          setErr("failed to load recent file");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
 
-    loadRecentFile();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshFile]);
+  const {
+    data: recentFile,
+    isLoading: loading,
+    error: err,
+  } = useQuery({
+    queryKey: ["recentNotes"],
+    queryFn: ({signal}) => getRecentFile(signal),
+  });
 
   if (loading)
     return (
@@ -46,7 +22,7 @@ export const RecentNote = React.memo(function RecentNote() {
       </p>
     );
   if (err)
-    return <p className="px-[6%] py-2 text-red-400 text-[14px]">{err}</p>;
+    return <p className="px-[6%] py-2 text-red-400 text-[14px]">{err.message}</p>;
 
   return (
     <section>

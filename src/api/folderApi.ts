@@ -2,8 +2,10 @@ import type { ErrorType } from "../types/error";
 import type { Folder, Folders } from "../types/folder";
 import api from "./api";
 
-export async function getFolders(): Promise<Folder[]> {
-  const res = await api.get<Folders | ErrorType>("/folders");
+export async function getFolders(signal: AbortSignal): Promise<Folder[]> {
+  const res = await api.get<Folders | ErrorType>("/folders", {
+    signal
+  });
 
   if("folders" in res.data){
     return res.data.folders;
